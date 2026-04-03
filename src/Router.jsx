@@ -7,11 +7,12 @@ import SellerLayout from "./layouts/SellerLayout";
 import FishingGuideLayout from "./layouts/FishingGuideLayout";
 
 // ─── Shared Pages ────────────────────────────────────────────────────────────
-import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 // ─── App (User) Pages ────────────────────────────────────────────────────────
 import HomePage from "./pages/APP_PAGES/HomePage";
+import LoginPage from "./pages//APP_PAGES/LoginPage";
+import RegisterPage from "./pages//APP_PAGES/RegisterPage";
 import TripsPage from "./pages/APP_PAGES/TripsPage";
 import MarketplacePage from "./pages/APP_PAGES/MarketplacePage";
 import CommunityPage from "./pages/APP_PAGES/CommunityPage";
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
   },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
 
   // ── App (User) Routes  ─────────────────────────────────────────────────────
   {
@@ -64,7 +69,7 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true,          element: <HomePage /> },
-      { path: "trips",        element: <TripsPage /> },
+       { path: "trips",        element: <TripsPage /> },
       { path: "marketplace",  element: <MarketplacePage /> },
       { path: "community",    element: <CommunityPage /> },
       { path: "profile",      element: <ProfilePage /> },

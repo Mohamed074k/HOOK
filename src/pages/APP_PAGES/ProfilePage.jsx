@@ -7,12 +7,12 @@ const ProfilePage = () => (
         JD
       </div>
       <div className="flex-1">
-        <h1 className="text-3xl font-black text-[#cee5ff]">John Doe</h1>
+        <h1 className="text-3xl font-black text-[#cee5ff]">Mohamed Elsayed</h1>
         <p className="text-[#a3cbf2]/60 mt-1">Fishing Enthusiast · Member since 2023</p>
         <div className="flex flex-wrap gap-4 mt-4 text-sm text-[#a3cbf2]/60">
-          <span className="flex items-center gap-1"><Mail size={14} /> john@example.com</span>
-          <span className="flex items-center gap-1"><Phone size={14} /> +1 555 0100</span>
-          <span className="flex items-center gap-1"><MapPin size={14} /> Miami, Florida</span>
+          <span className="flex items-center gap-1"><Mail size={14} /> ms074@gmail.com</span>
+          <span className="flex items-center gap-1"><Phone size={14} /> +11228563612</span>
+          <span className="flex items-center gap-1"><MapPin size={14} /> Qallin, Kafr Elsheikh</span>
         </div>
       </div>
       <button className="border border-sky-400/30 text-sky-400 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-sky-400/10 transition-colors">
