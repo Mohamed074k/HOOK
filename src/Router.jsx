@@ -1,24 +1,30 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// ─── Layouts ────────────────────────────────────────────────────────────────
+// ─── Auth guard ──────────────────────────────────────────────────────────────
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// ─── Layouts ─────────────────────────────────────────────────────────────────
 import AppLayout from "./layouts/AppLayout";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import SellerLayout from "./layouts/SellerLayout";
-import FishingGuideLayout from "./layouts/FishingGuideLayout";
+import BoatOwnerLayout from "./layouts/BoatOwnerLayout";
 
-// ─── Shared Pages ────────────────────────────────────────────────────────────
+// ─── Shared Pages ─────────────────────────────────────────────────────────────
 import NotFoundPage from "./pages/NotFoundPage";
 
-// ─── App (User) Pages ────────────────────────────────────────────────────────
+// ─── App (User) Pages ─────────────────────────────────────────────────────────
 import HomePage from "./pages/APP_PAGES/HomePage";
-import LoginPage from "./pages//APP_PAGES/LoginPage";
-import RegisterPage from "./pages//APP_PAGES/RegisterPage";
+import LoginPage from "./pages/APP_PAGES/LoginPage";
+import RegisterPage from "./pages/APP_PAGES/RegisterPage";
 import TripsPage from "./pages/APP_PAGES/TripsPage";
+import TripDetailsPage from "./pages/APP_PAGES/TripDetailsPage";
+import BookingPage from "./pages/APP_PAGES/BookingPage";
 import MarketplacePage from "./pages/APP_PAGES/MarketplacePage";
 import CommunityPage from "./pages/APP_PAGES/CommunityPage";
 import ProfilePage from "./pages/APP_PAGES/ProfilePage";
+import CartPage from "./pages/APP_PAGES/CartPage";
 
-// ─── Super Admin Pages ───────────────────────────────────────────────────────
+// ─── Super Admin Pages ────────────────────────────────────────────────────────
 import SuperAdminDashboard from "./pages/SUPER_ADMIN_PAGES/SuperAdminDashboard";
 import UsersManagement from "./pages/SUPER_ADMIN_PAGES/UsersManagement";
 import TripsManagement from "./pages/SUPER_ADMIN_PAGES/TripsManagement";
@@ -27,112 +33,123 @@ import BookingsManagement from "./pages/SUPER_ADMIN_PAGES/BookingsManagement";
 import ProductsManagement from "./pages/SUPER_ADMIN_PAGES/ProductsManagement";
 import OrdersManagement from "./pages/SUPER_ADMIN_PAGES/OrdersManagement";
 import CommunityManagement from "./pages/SUPER_ADMIN_PAGES/CommunityManagement";
-// import ReportsComplaints from "./pages/SUPER_ADMIN_PAGES/ReportsComplaints";
 import AnalyticsPage from "./pages/SUPER_ADMIN_PAGES/AnalyticsPage";
- import AdminSettingsPage from "./pages/SUPER_ADMIN_PAGES/AdminSettingsPage";
+import AdminSettingsPage from "./pages/SUPER_ADMIN_PAGES/AdminSettingsPage";
 import SellersManagement from "./pages/SUPER_ADMIN_PAGES/SellersManagement";
 import FishingGuidesManagement from "./pages/SUPER_ADMIN_PAGES/FishingGuidesManagement";
 
-// ─── Seller Pages ────────────────────────────────────────────────────────────
+// ─── Seller Pages ─────────────────────────────────────────────────────────────
 import SellerDashboard from "./pages/SELLER_PAGES/SellerDashboard";
 import ProductsPage from "./pages/SELLER_PAGES/ProductsPage";
 import AddProductPage from "./pages/SELLER_PAGES/AddProductPage";
 import ProductDetailsPage from "./pages/SELLER_PAGES/ProductDetailsPage";
 import OrdersPage from "./pages/SELLER_PAGES/OrdersPage";
-import EarningsPage from "./pages/SELLER_PAGES/EarningsPage"; 
+import EarningsPage from "./pages/SELLER_PAGES/EarningsPage";
 import SellerReviewsPage from "./pages/SELLER_PAGES/SellerReviewsPage";
 import SellerSettingsPage from "./pages/SELLER_PAGES/SellerSettingsPage";
 
-// ─── Fishing Guide Pages ─────────────────────────────────────────────────────
-import GuideDashboard from "./pages/FISHSING_GUIDE_PAGES/GuideDashboard";
-import GuideTripsPage from "./pages/FISHSING_GUIDE_PAGES/GuideTripsPage";
-import GuideBoatsPage from "./pages/FISHSING_GUIDE_PAGES/GuideBoatsPage";
-import GuideBookingsPage from "./pages/FISHSING_GUIDE_PAGES/GuideBookingsPage";
-import GuideReviewsPage from "./pages/FISHSING_GUIDE_PAGES/GuideReviewsPage";
-import GuideSettingsPage from "./pages/FISHSING_GUIDE_PAGES/GuideSettingsPage";
+// ─── Boat Owner Pages ──────────────────────────────────────────────────────
+import GuideDashboard from "./pages/BOAT_OWNER_PAGES/GuideDashboard";
+import GuideTripsPage from "./pages/BOAT_OWNER_PAGES/GuideTripsPage";
+import GuideBoatsPage from "./pages/BOAT_OWNER_PAGES/GuideBoatsPage";
+import GuideBookingsPage from "./pages/BOAT_OWNER_PAGES/GuideBookingsPage";
+import GuideReviewsPage from "./pages/BOAT_OWNER_PAGES/GuideReviewsPage";
+import GuideSettingsPage from "./pages/BOAT_OWNER_PAGES/GuideSettingsPage";
 
-// ─── Router Config ───────────────────────────────────────────────────────────
+// ─── Router Config ────────────────────────────────────────────────────────────
 const router = createBrowserRouter([
-  // ── Shared Auth Pages ──────────────────────────────────────────────────────
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/register",
-    element: <RegisterPage />,
-  },
+  // ── Public Auth Pages ──────────────────────────────────────────────────────
+  { path: "/login",    element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
 
-  // ── App (User) Routes  ─────────────────────────────────────────────────────
+  // ── App (User) Routes — publicly accessible ───────────────────────────────
   {
     path: "/",
     element: <AppLayout />,
     children: [
-      { index: true,          element: <HomePage /> },
-       { path: "trips",        element: <TripsPage /> },
-      { path: "marketplace",  element: <MarketplacePage /> },
-      { path: "community",    element: <CommunityPage /> },
-      { path: "profile",      element: <ProfilePage /> },
-    ],
+      { index: true,         element: <HomePage /> },
+      { path: "trips",       element: <TripsPage /> },
+      { path: "trip/:id",       element: <TripDetailsPage /> },
+       { path: "trip/:id/book",    element: <BookingPage /> },
+      { path: "marketplace", element: <MarketplacePage /> },
+      { path: "community",   element: <CommunityPage /> },
+      { path: "cart",   element: <CartPage /> },
+        { 
+        path: "profile", 
+        element: (
+          <ProtectedRoute allowedRoles={["User"]}>
+            <ProfilePage />
+          </ProtectedRoute>
+        )
+      },    ],
   },
 
   // ── Super Admin Routes ─────────────────────────────────────────────────────
   {
     path: "/super-admin",
-    element: <SuperAdminLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={["Admin"]}>
+        <SuperAdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
-       { index: true,                          element: <SuperAdminDashboard /> },
-       { path: "users",                        element: <UsersManagement /> },
-       { path: "fishing-guides",               element: <FishingGuidesManagement /> },
-       { path: "sellers",                      element: <SellersManagement /> },
-       { path: "trips",                        element: <TripsManagement /> },
-       { path: "boats",                        element: <BoatsManagement /> },
-       { path: "bookings",                     element: <BookingsManagement /> },
-       { path: "products",                     element: <ProductsManagement /> },
-       { path: "orders",                       element: <OrdersManagement /> },
-       { path: "community",                    element: <CommunityManagement /> },
-        { path: "analytics",                    element: <AnalyticsPage /> },
-        { path: "settings",                     element: <AdminSettingsPage /> },
+      { index: true,             element: <SuperAdminDashboard /> },
+      { path: "users",           element: <UsersManagement /> },
+      { path: "boat-owners",  element: <FishingGuidesManagement /> },
+      { path: "sellers",         element: <SellersManagement /> },
+      { path: "trips",           element: <TripsManagement /> },
+      { path: "boats",           element: <BoatsManagement /> },
+      { path: "bookings",        element: <BookingsManagement /> },
+      { path: "products",        element: <ProductsManagement /> },
+      { path: "orders",          element: <OrdersManagement /> },
+      { path: "community",       element: <CommunityManagement /> },
+      { path: "analytics",       element: <AnalyticsPage /> },
+      { path: "settings",        element: <AdminSettingsPage /> },
     ],
   },
 
   // ── Seller Routes ──────────────────────────────────────────────────────────
   {
     path: "/seller",
-    element: <SellerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={["Seller"]}>
+        <SellerLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true,                  element: <SellerDashboard /> },
-      { path: "products",             element: <ProductsPage /> },
-      { path: "products/add",         element: <AddProductPage /> },
-      { path: "products/edit/:id",    element: <AddProductPage /> }, 
-      { path: "products/:id",         element: <ProductDetailsPage /> },
-      { path: "orders",               element: <OrdersPage /> },
-      { path: "earnings",             element: <EarningsPage /> },    
-      { path: "reviews",              element: <SellerReviewsPage /> },
-      { path: "settings",             element: <SellerSettingsPage /> },
+      { index: true,                element: <SellerDashboard /> },
+      { path: "products",           element: <ProductsPage /> },
+      { path: "products/add",       element: <AddProductPage /> },
+      { path: "products/edit/:id",  element: <AddProductPage /> },
+      { path: "products/:id",       element: <ProductDetailsPage /> },
+      { path: "orders",             element: <OrdersPage /> },
+      { path: "earnings",           element: <EarningsPage /> },
+      { path: "reviews",            element: <SellerReviewsPage /> },
+      { path: "settings",           element: <SellerSettingsPage /> },
     ],
   },
 
-  // ── Fishing Guide Routes ───────────────────────────────────────────────────
+  // ── Boat Owner Routes ───────────────────────────────────────
   {
-    path: "/fishing-guide",
-    element: <FishingGuideLayout />,
+    path: "/boat-owner",
+    element: (
+      <ProtectedRoute allowedRoles={["BoatOwner"]}>
+        <BoatOwnerLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true,                  element: <GuideDashboard /> },
-      { path: "trips",                element: <GuideTripsPage /> },
-      { path: "trips/add",            element: <GuideTripsPage /> },  
-      { path: "boats",                element: <GuideBoatsPage /> },
-      { path: "bookings",             element: <GuideBookingsPage /> },
-      { path: "reviews",              element: <GuideReviewsPage /> },
-      { path: "settings",             element: <GuideSettingsPage /> },
+      { index: true,         element: <GuideDashboard /> },
+      { path: "trips",       element: <GuideTripsPage /> },
+      { path: "trips/add",   element: <GuideTripsPage /> },
+      { path: "boats",       element: <GuideBoatsPage /> },
+      { path: "bookings",    element: <GuideBookingsPage /> },
+      { path: "reviews",     element: <GuideReviewsPage /> },
+      { path: "settings",    element: <GuideSettingsPage /> },
     ],
   },
 
   // ── 404 Catch-All ──────────────────────────────────────────────────────────
-  {
-    path: "*",
-    element: <NotFoundPage />,
-  },
+  { path: "*", element: <NotFoundPage /> },
 ]);
 
 const Router = () => <RouterProvider router={router} />;

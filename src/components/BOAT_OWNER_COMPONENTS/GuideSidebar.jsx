@@ -3,21 +3,26 @@ import {
   LayoutDashboard, Ship, Sailboat, Users, Star,
   UserCircle, LogOut, X, Compass,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const navItems = [
-  { to: "/fishing-guide", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/fishing-guide/trips", label: "My Trips", icon: Ship },
-  { to: "/fishing-guide/boats", label: "Boats", icon: Sailboat },
-  { to: "/fishing-guide/bookings", label: "Bookings", icon: Users },
-  { to: "/fishing-guide/reviews", label: "Reviews", icon: Star },
-  { to: "/fishing-guide/settings", label: "My Profile", icon: UserCircle },
+  { to: "/boat-owner", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/boat-owner/trips", label: "My Trips", icon: Ship, end: false },
+  { to: "/boat-owner/boats", label: "Boats", icon: Sailboat, end: false },
+  { to: "/boat-owner/bookings", label: "Bookings", icon: Users, end: false },
+  { to: "/boat-owner/reviews", label: "Reviews", icon: Star, end: false },
+  { to: "/boat-owner/settings", label: "My Profile", icon: UserCircle, end: false },
 ];
 
 const GuideSidebar = ({ onClose }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    navigate("/login");
+    logout();
+    toast.success("Logged out successfully. See you soon!");
+    navigate("/login", { replace: true });
     if (onClose) onClose();
   };
 
@@ -46,11 +51,11 @@ const GuideSidebar = ({ onClose }) => {
 
       {/* Nav */}
       <nav className="flex-1 py-6 flex flex-col gap-1 px-3 overflow-y-auto">
-        {navItems.map(({ to, label, icon: Icon }) => (
+        {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === "/fishing-guide"}
+            end={end}
             onClick={onClose}
             className={({ isActive }) =>
               `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -81,7 +86,6 @@ const GuideSidebar = ({ onClose }) => {
 
       {/* Logout */}
       <div className="p-3 border-t border-white/5 space-y-1">
-        
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#a3cbf2]/50 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 text-sm group"

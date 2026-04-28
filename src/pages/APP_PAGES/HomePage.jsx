@@ -72,3 +72,27 @@ const HomePage = () => (
 );
 
 export default HomePage;
+
+
+// import React from "react";
+// import HeroSection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/HeroSection";
+// import CategorySection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/CategorySection";
+// import FeaturedTripsSection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/FeaturedTripsSection";
+// import TopProductsSection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/TopProductsSection";
+// import CommunitySection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/CommunitySection";
+// import AIAssistantSection from "../../components/APP_COMPONENTS/HOME_COMPONENTS/AIAssistantSection";
+
+// const HomePage = () => {
+//   return (
+//     <div className="min-h-screen relative" style={{ background: "#000d1a" }}>
+//       <HeroSection />
+//       <CategorySection />
+//       <FeaturedTripsSection />
+//       <TopProductsSection />
+//       <CommunitySection />
+//       <AIAssistantSection />
+//     </div>
+//   );
+// };
+
+// export default HomePage;

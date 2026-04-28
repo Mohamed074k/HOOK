@@ -131,7 +131,7 @@ const GuideDashboard = () => {
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5">
           <h2 className="text-base font-bold text-[#cee5ff]">Upcoming Bookings</h2>
           <button 
-            onClick={() => window.location.href = '/fishing-guide/bookings'}
+            onClick={() => window.location.href = '/boat-owner/bookings'}
             className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium flex items-center gap-1"
           >
             View all <ArrowUpRight size={12} />

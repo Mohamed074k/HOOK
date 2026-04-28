@@ -3,12 +3,14 @@ import {
   LayoutDashboard, Users, Ship, Package, ShoppingCart, MessageCircle,
   BarChart3, Settings, LogOut, X, Shield, Sailboat, Calendar, Store, Compass
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const navItems = [
    { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/super-admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/super-admin/users", label: "Users", icon: Users },
-  { to: "/super-admin/fishing-guides", label: "Fishing Guides", icon: Compass },
+  { to: "/super-admin/boat-owners", label: "Boat Owners", icon: Compass },
   { to: "/super-admin/sellers", label: "Sellers", icon: Store },
   { to: "/super-admin/trips", label: "Trips", icon: Ship },
   { to: "/super-admin/boats", label: "Boats", icon: Sailboat },
@@ -21,9 +23,12 @@ const navItems = [
 
 const SuperAdminSidebar = ({ onClose }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    navigate("/login");
+    logout();
+    toast.success("Logged out successfully. See you soon!");
+    navigate("/login", { replace: true });
     if (onClose) onClose();
   };
 

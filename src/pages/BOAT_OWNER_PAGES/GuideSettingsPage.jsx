@@ -1,8 +1,10 @@
-// src/pages/ADMIN_PAGES/AdminSettingsPage.js
-import { useState, useEffect, useRef } from "react";
-import { Camera, MapPin, Phone, Mail, Lock, User, Save, Loader2, X } from "lucide-react";
+// src/pages/BOAT_OWNER_PAGES/GuideSettingsPage.js
+import { useState, useRef, useEffect } from "react";
+import { Camera, MapPin, Phone, Mail, Globe, Award, Fish, Lock, User, Save, Loader2 } from "lucide-react";
 import { useProfile } from "../../context/ProfileContext";
 import { toast } from 'react-hot-toast';
+
+const SPECIALTIES = ["Deep Sea", "Fly Fishing", "Coastal", "Ice Fishing", "Freshwater", "Offshore", "Inshore", "Saltwater"];
 
 // Components moved OUTSIDE the main component to prevent losing focus
 const Label = ({ children }) => (
@@ -21,14 +23,13 @@ const Input = ({ icon: Icon, ...props }) => (
   </div>
 );
 
-const AdminSettingsPage = () => {
+const GuideSettingsPage = () => {
   const { profile, loading: profileLoading, updateProfile, changePassword } = useProfile();
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [saved, setSaved] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [modalClosing, setModalClosing] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -43,40 +44,19 @@ const AdminSettingsPage = () => {
     phoneNumber: "",
     governorate: "",
     bio: "",
+    specialties: ["Deep Sea", "Fly Fishing"],
+    website: "",
+    certifications: "",
     profilePicture: null
   });
 
   const avatarRef = useRef(null);
-  const modalRef = useRef(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => setAnimate(true), 50);
     return () => clearTimeout(timer);
   }, []);
-
-  // Handle escape key to close modal
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && showPasswordModal && !modalClosing) {
-        closePasswordModal();
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [showPasswordModal, modalClosing]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (showPasswordModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showPasswordModal]);
 
   // Load profile data when available
   useEffect(() => {
@@ -88,6 +68,9 @@ const AdminSettingsPage = () => {
         phoneNumber: profile.phoneNumber || "",
         governorate: profile.governorate || "",
         bio: profile.bio || "",
+        specialties: profile.specialties || ["Deep Sea", "Fly Fishing"],
+        website: profile.website || "",
+        certifications: profile.certifications || "",
         profilePicture: profile.profilePictureUrl || null
       });
       
@@ -122,7 +105,14 @@ const AdminSettingsPage = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = async (e) => {
+  const toggleSpecialty = (name) => {
+    set("specialties", form.specialties.includes(name)
+      ? form.specialties.filter(s => s !== name)
+      : [...form.specialties, name]
+    );
+  };
+
+const handleSave = async (e) => {
     e.preventDefault();
     
     // Validate required fields
@@ -141,7 +131,7 @@ const AdminSettingsPage = () => {
         bio: form.bio || "",
       };
       
-      // Only send the profile picture if it's a newly uploaded base64 string
+      // ✅ THE FIX: Only send the profile picture if it's a newly uploaded base64 string
       if (form.profilePicture && form.profilePicture.startsWith("data:image")) {
         updateData.profilePicture = form.profilePicture;
       }
@@ -155,21 +145,6 @@ const AdminSettingsPage = () => {
       setSaving(false);
     }
   };
-
-  const openPasswordModal = () => {
-    setShowPasswordModal(true);
-    setModalClosing(false);
-  };
-
-  const closePasswordModal = () => {
-    setModalClosing(true);
-    setTimeout(() => {
-      setShowPasswordModal(false);
-      setModalClosing(false);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    }, 200);
-  };
-
   const handlePasswordChange = async () => {
     // Validate passwords
     if (!passwordForm.currentPassword) {
@@ -192,17 +167,12 @@ const AdminSettingsPage = () => {
     setChangingPassword(true);
     try {
       await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-      closePasswordModal();
+      setShowPasswordModal(false);
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
       console.error("Password change error:", error);
     } finally {
       setChangingPassword(false);
-    }
-  };
-
-  const handleModalBackdropClick = (e) => {
-    if (e.target === e.currentTarget && !modalClosing) {
-      closePasswordModal();
     }
   };
 
@@ -232,12 +202,12 @@ const AdminSettingsPage = () => {
         }`}>
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Admin Profile</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">My Profile</h1>
               <p className="text-[#a3cbf2]/50 text-sm mt-1">Manage your personal information and preferences</p>
             </div>
             <button
               type="button"
-              onClick={openPasswordModal}
+              onClick={() => setShowPasswordModal(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200"
             >
               <Lock size={15} /> Change Password
@@ -361,12 +331,12 @@ const AdminSettingsPage = () => {
           }}
         >
           <h2 className="text-sm font-bold text-[#cee5ff] mb-1">Professional Bio</h2>
-          <p className="text-[#a3cbf2]/40 text-xs mb-4">Tell others about your role and experience</p>
+          <p className="text-[#a3cbf2]/40 text-xs mb-4">Tell customers about your passion and experience</p>
           <textarea
             rows={5}
             value={form.bio}
             onChange={e => set("bio", e.target.value)}
-            placeholder="Tell others about your role as an administrator, your experience, and what you're passionate about..."
+            placeholder="Tell customers about your passion for fishing, your experience, and what makes your trips special..."
             className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-3 text-[#cee5ff] text-sm placeholder:text-[#a3cbf2]/20
               focus:outline-none focus:border-sky-400/40 focus:ring-1 focus:ring-sky-400/10 transition-all duration-200 resize-none"
             maxLength={500}
@@ -399,87 +369,70 @@ const AdminSettingsPage = () => {
         </div>
       </form>
 
-      {/* Change Password Modal with Smooth Transitions */}
+      {/* Change Password Modal */}
       {showPasswordModal && (
-        <div 
-          className={`fixed inset-0 z-[9999] transition-all duration-200 ${
-            modalClosing ? 'opacity-0' : 'opacity-100'
-          }`}
-          style={{ backgroundColor: modalClosing ? 'transparent' : 'rgba(0, 0, 0, 0.8)' }}
-          onClick={handleModalBackdropClick}
-        >
-          <div 
-            ref={modalRef}
-            className={`flex items-center justify-center min-h-screen p-4 transition-all duration-300 ${
-              modalClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
-            }`}
-          >
-            <div 
-              className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[#cee5ff] font-bold text-lg">Change Password</h3>
-                <button
-                  onClick={closePasswordModal}
-                  className="p-1 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all duration-200"
-                >
-                  <X size={20} />
-                </button>
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[#cee5ff] font-bold text-lg">Change Password</h3>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="p-1 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>Current Password</Label>
+                <input
+                  type="password"
+                  placeholder="Enter current password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                />
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label>Current Password</Label>
-                  <input
-                    type="password"
-                    placeholder="Enter current password"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all duration-200"
-                    autoFocus
-                  />
-                </div>
-                
-                <div>
-                  <Label>New Password</Label>
-                  <input
-                    type="password"
-                    placeholder="Enter new password (min 6 characters)"
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <Label>Confirm New Password</Label>
-                  <input
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all duration-200"
-                  />
-                </div>
+              <div>
+                <Label>New Password</Label>
+                <input
+                  type="password"
+                  placeholder="Enter new password (min 6 characters)"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                />
               </div>
               
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={closePasswordModal}
-                  className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePasswordChange}
-                  disabled={changingPassword}
-                  className="flex-1 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {changingPassword ? <Loader2 size={16} className="animate-spin" /> : null}
-                  {changingPassword ? "Changing..." : "Change Password"}
-                </button>
+              <div>
+                <Label>Confirm New Password</Label>
+                <input
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                />
               </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasswordChange}
+                disabled={changingPassword}
+                className="flex-1 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {changingPassword ? <Loader2 size={16} className="animate-spin" /> : null}
+                {changingPassword ? "Changing..." : "Change Password"}
+              </button>
             </div>
           </div>
         </div>
@@ -495,4 +448,4 @@ const AdminSettingsPage = () => {
   );
 };
 
-export default AdminSettingsPage;
+export default GuideSettingsPage;

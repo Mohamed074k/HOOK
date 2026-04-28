@@ -1,12 +1,14 @@
-// components/FISHING_GUIDE_COMPONENTS/BoatDetails.jsx
-import { Pencil, Eye, X, Ship, Users } from "lucide-react";
-
-const statusConfig = {
-  Active: { label: "Active", bg: "bg-sky-400/10", text: "text-sky-400" },
-  Draft: { label: "Draft", bg: "bg-[#a3cbf2]/10", text: "text-[#a3cbf2]/50" },
-};
+import { Pencil, X, Ship, Users, Info } from "lucide-react";
 
 const BoatDetails = ({ boat, onClose, onEdit, animate }) => {
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `https://hook.runasp.net${url}`;
+  };
+
+  const allImages = boat.images || [];
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className={`transform transition-all duration-700 ease-out ${
@@ -40,17 +42,26 @@ const BoatDetails = ({ boat, onClose, onEdit, animate }) => {
       }`}>
         <h2 className="text-sm font-bold text-[#cee5ff] mb-4">Gallery</h2>
         <div className="grid grid-cols-3 gap-3">
-          {boat.images.map((img, idx) => (
-            <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-[#001526]">
-              {img ? (
-                <img src={img} alt={`${boat.name} ${idx + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Ship size={24} className="text-[#a3cbf2]/20" />
-                </div>
-              )}
+          {allImages.length > 0 ? (
+            allImages.map((img) => (
+              <div key={img.id} className="aspect-square rounded-xl overflow-hidden bg-[#001526] relative">
+                <img 
+                  src={getImageUrl(img.imageUrl)} 
+                  alt={boat.name} 
+                  className="w-full h-full object-cover"
+                />
+                {img.isMainImage && (
+                  <span className="absolute bottom-2 left-2 bg-sky-500/90 text-white text-[10px] px-2 py-0.5 rounded shadow uppercase font-bold tracking-wider">
+                    Main Image
+                  </span>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="col-span-3 aspect-square rounded-xl bg-[#001526] flex items-center justify-center">
+              <Ship size={48} className="text-[#a3cbf2]/20" />
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -66,21 +77,19 @@ const BoatDetails = ({ boat, onClose, onEdit, animate }) => {
           </div>
           <div className="flex justify-between items-center py-2 border-b border-white/5">
             <span className="text-[#a3cbf2]/50 text-sm">Capacity</span>
-            <span className="text-[#cee5ff] font-medium">{boat.capacity} persons</span>
-          </div>
-          <div className="flex justify-between items-center py-2 border-b border-white/5">
-            <span className="text-[#a3cbf2]/50 text-sm">Status</span>
-            <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusConfig[boat.status]?.bg} ${statusConfig[boat.status]?.text}`}>
-              {statusConfig[boat.status]?.label}
+            <span className="text-[#cee5ff] font-medium flex items-center gap-2">
+              <Users size={14} /> {boat.capacity} persons
             </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-white/5">
-            <span className="text-[#a3cbf2]/50 text-sm">Total Trips</span>
-            <span className="text-[#cee5ff] font-medium">{boat.tripsCount} trips</span>
+            <span className="text-[#a3cbf2]/50 text-sm">Owner</span>
+            <span className="text-[#cee5ff] font-medium">{boat.ownerName || "You"}</span>
           </div>
           {boat.description && (
             <div className="py-2">
-              <span className="text-[#a3cbf2]/50 text-sm block mb-2">Description</span>
+              <span className="text-[#a3cbf2]/50 text-sm block mb-2 flex items-center gap-2">
+                <Info size={14} /> Description
+              </span>
               <p className="text-[#cee5ff]/70 text-sm leading-relaxed">{boat.description}</p>
             </div>
           )}

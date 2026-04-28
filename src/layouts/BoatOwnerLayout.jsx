@@ -1,9 +1,9 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import GuideSidebar from "../components/FISHING_GUIDE_COMPONENTS/GuideSidebar";
+import GuideSidebar from "../components/BOAT_OWNER_COMPONENTS/GuideSidebar";
 
-const FishingGuideLayout = () => {
+const BoatOwnerLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -86,4 +86,4 @@ const FishingGuideLayout = () => {
   );
 };
 
-export default FishingGuideLayout;
+export default BoatOwnerLayout;

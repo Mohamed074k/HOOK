@@ -1,83 +1,24 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Users, Ship, Eye, ToggleLeft, ToggleRight } from "lucide-react";
-import BoatWizard from "../../components/FISHING_GUIDE_COMPONENTS/BoatWizard";
-import BoatDetails from "../../components/FISHING_GUIDE_COMPONENTS/BoatDetails";
-
-const INITIAL_BOATS = [
-  {
-    id: "1",
-    name: "Sea Hunter",
-    capacity: 6,
-    description: "A powerful sport fishing vessel equipped with the latest technology. Perfect for deep sea adventures.",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-    ],
-    tripsCount: 3,
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Flat Master",
-    capacity: 4,
-    description: "Shallow draft boat ideal for coastal fly fishing and flats fishing.",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-    ],
-    tripsCount: 2,
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Sunset Dream",
-    capacity: 8,
-    description: "Spacious cruiser perfect for sunset charters and group excursions.",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-    ],
-    tripsCount: 1,
-    status: "Active",
-  },
-  {
-    id: "4",
-    name: "North Star",
-    capacity: 4,
-    description: "Luxury boat for dolphin tours in Marsa Alam.",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-    ],
-    tripsCount: 4,
-    status: "Draft",
-  },
-  {
-    id: "5",
-    name: "Coral Explorer",
-    capacity: 10,
-    description: "Large boat for snorkeling and coral reef exploration.",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-    ],
-    tripsCount: 5,
-    status: "Active",
-  },
-];
-
-const statusConfig = {
-  Active: { label: "Active", bg: "bg-sky-400/10", text: "text-sky-400" },
-  Draft: { label: "Draft", bg: "bg-[#a3cbf2]/10", text: "text-[#a3cbf2]/50" },
-};
+import { Plus, Pencil, Trash2, Users, Ship, Eye, Loader2, Search } from "lucide-react";
+import { useBoats } from "../../context/BOAT_OWNER_CONTEXT/BoatContext";
+import BoatWizard from "../../components/BOAT_OWNER_COMPONENTS/BoatWizard";
+import BoatDetails from "../../components/BOAT_OWNER_COMPONENTS/BoatDetails";
 
 const GuideBoatsPage = () => {
-  const [boats, setBoats] = useState(INITIAL_BOATS);
+  const { 
+    boats, 
+    allBoats, 
+    loading, 
+    searchTerm,
+    setSearchTerm,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    createBoat, 
+    updateBoat, 
+    deleteBoat 
+  } = useBoats();
+  
   const [view, setView] = useState("list");
   const [selectedBoat, setSelectedBoat] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -85,7 +26,7 @@ const GuideBoatsPage = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setAnimate(true), 50); 
+    const timer = setTimeout(() => setAnimate(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
@@ -112,36 +53,41 @@ const GuideBoatsPage = () => {
     setSelectedBoat(null);
   };
 
-  const handleSave = (formData) => {
-    if (selectedBoat) {
-      setBoats(prev => prev.map(b => 
-        b.id === selectedBoat.id 
-          ? { ...b, ...formData, status: b.status }
-          : b
-      ));
-    } else {
-      const newBoat = {
-        ...formData,
-        id: String(Date.now()),
-        tripsCount: 0,
-        status: "Active",
-      };
-      setBoats(prev => [...prev, newBoat]);
+  const handleSave = async (formData) => {
+    try {
+      if (selectedBoat) {
+        await updateBoat(selectedBoat.id, formData);
+      } else {
+        await createBoat(formData);
+      }
+      closeWizard();
+    } catch (error) {
+      console.error("Error saving boat:", error);
     }
-    closeWizard();
-  };
-
-  const toggleStatus = (id) => {
-    setBoats(prev => prev.map(b =>
-      b.id === id ? { ...b, status: b.status === "Active" ? "Draft" : "Active" } : b
-    ));
   };
 
   const confirmDelete = (id) => setDeleteId(id);
-  const doDelete = () => {
-    setBoats(prev => prev.filter(b => b.id !== deleteId));
-    setDeleteId(null);
+  
+  const handleDelete = async () => {
+    try {
+      await deleteBoat(deleteId);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Error deleting boat:", error);
+    }
   };
+
+  // Loading state
+  if (loading && allBoats.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 size={48} className="text-sky-400 animate-spin mx-auto mb-4" />
+          <p className="text-[#a3cbf2]/50">Loading your boats...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (view === "wizard") {
     return <BoatWizard boat={selectedBoat} onClose={closeWizard} onSave={handleSave} />;
@@ -162,7 +108,7 @@ const GuideBoatsPage = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">My Boats</h1>
             <p className="text-[#a3cbf2]/50 text-sm mt-1">
-              {boats.length} boats total · {boats.filter(b => b.status === "Active").length} active
+              {allBoats.length} boats total
             </p>
           </div>
           <button
@@ -178,14 +124,32 @@ const GuideBoatsPage = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className={`transform transition-all duration-700 delay-100 ease-out ${
+        animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+      }`}>
+        <div className="relative max-w-md">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3cbf2]/30" />
+          <input
+            type="text"
+            placeholder="Search boats..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#002238] border border-white/5 rounded-xl pl-9 pr-4 py-2 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+          />
+        </div>
+      </div>
+
       {/* Boats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {boats.map((boat, idx) => {
-          const sc = statusConfig[boat.status];
+          // Read from the new JSON format
+          const mainImage = boat.mainImageUrl || boat.images?.[0]?.imageUrl || null;
+          
           return (
             <div
               key={boat.id}
-              className={`group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transition-all duration-300 transform transition-all duration-700 ease-out`}
+              className={`group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transition-all duration-300`}
               style={{
                 opacity: animate ? 1 : 0,
                 transform: animate ? "translateY(0)" : "translateY(30px)",
@@ -194,18 +158,18 @@ const GuideBoatsPage = () => {
             >
               {/* Image Gallery Preview */}
               <div className="h-40 bg-gradient-to-br from-sky-900 to-[#001526] relative overflow-hidden">
-                {boat.images[0] ? (
-                  <img src={boat.images[0]} alt={boat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {mainImage ? (
+                  <img 
+                    src={mainImage.startsWith('http') ? mainImage : `https://hook.runasp.net${mainImage}`} 
+                    alt={boat.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Ship size={40} className="text-[#a3cbf2]/20" />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent opacity-60" />
-                {/* Status badge */}
-                <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold ${sc.bg} ${sc.text} backdrop-blur-sm z-10`}>
-                  {sc.label}
-                </span>
               </div>
 
               {/* Content */}
@@ -216,18 +180,10 @@ const GuideBoatsPage = () => {
                 
                 <div className="flex flex-wrap gap-3 mt-3 text-xs text-[#a3cbf2]/50">
                   <span className="flex items-center gap-1"><Users size={11} /> {boat.capacity} persons</span>
-                  <span className="flex items-center gap-1"><Ship size={11} /> {boat.tripsCount} trips</span>
                 </div>
 
-                {/* Actions - Like trips page */}
+                {/* Actions */}
                 <div className="flex items-center justify-end gap-1 mt-4 pt-3 border-t border-white/5">
-                  <button
-                    onClick={() => toggleStatus(boat.id)}
-                    title={`Mark as ${boat.status === "Active" ? "Draft" : "Active"}`}
-                    className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
-                  >
-                    {boat.status === "Active" ? <ToggleRight size={18} className="text-sky-400" /> : <ToggleLeft size={18} />}
-                  </button>
                   <button
                     onClick={() => openDetails(boat)}
                     className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
@@ -255,10 +211,10 @@ const GuideBoatsPage = () => {
           );
         })}
 
-        {/* Add Card with matched styling from GuideTripsPage */}
+        {/* Add Card */}
         <button
           onClick={openAdd}
-          className={`min-h-[280px] border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-[#a3cbf2]/30 hover:border-sky-400/30 hover:text-sky-400/60 hover:bg-sky-400/5 transition-all duration-300 group transform transition-all duration-700 ease-out`}
+          className={`min-h-[280px] border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 text-[#a3cbf2]/30 hover:border-sky-400/30 hover:text-sky-400/60 hover:bg-sky-400/5 transition-all duration-300 group`}
           style={{
             opacity: animate ? 1 : 0,
             transform: animate ? "translateY(0)" : "translateY(30px)",
@@ -273,23 +229,32 @@ const GuideBoatsPage = () => {
         </button>
       </div>
 
-      {/* Empty State */}
-      {boats.length === 0 && (
-        <div className="col-span-full bg-[#002238] border border-white/5 rounded-2xl p-12 text-center">
-          <Ship size={48} className="mx-auto text-[#a3cbf2]/20 mb-4" />
-          <p className="text-[#a3cbf2]/30 text-sm mb-4">No boats yet</p>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
           <button
-            onClick={openAdd}
-            className="inline-flex items-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-sky-400 transition-all"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded-lg bg-[#002238] border border-white/5 text-[#a3cbf2]/50 hover:text-white hover:border-sky-400/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus size={16} /> Add Your First Boat
+            Previous
+          </button>
+          <span className="px-3 py-1 text-[#a3cbf2]/50 text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 rounded-lg bg-[#002238] border border-white/5 text-[#a3cbf2]/50 hover:text-white hover:border-sky-400/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
           </button>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-[#cee5ff] font-bold text-lg mb-2">Delete Boat?</h3>
             <p className="text-[#a3cbf2]/60 text-sm mb-6">
@@ -303,7 +268,7 @@ const GuideBoatsPage = () => {
                 Cancel
               </button>
               <button
-                onClick={doDelete}
+                onClick={handleDelete}
                 className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-400/20 hover:bg-red-500/30 text-sm font-bold transition-all"
               >
                 Delete
@@ -312,20 +277,6 @@ const GuideBoatsPage = () => {
           </div>
         </div>
       )}
-
-      {/* Add animation keyframes matched from GuideTripsPage */}
-      <style>{`
-        @keyframes slideIn {
-          0% {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 };

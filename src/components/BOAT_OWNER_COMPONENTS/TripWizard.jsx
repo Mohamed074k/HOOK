@@ -1,23 +1,17 @@
-import { useState, useRef } from "react";
+// src/components/BOAT_OWNER_COMPONENTS/TripWizard.js
+import { useState, useRef, useEffect } from "react";
 import {
-  ChevronLeft, ChevronRight, Check, X, Upload, ImagePlus, Trash2, Calendar as CalendarIcon,
-  Compass, Fish, Waves, Umbrella, MapPin, Users, DollarSign, Clock, Info,
+  ChevronLeft, ChevronRight, Check, X, Upload, ImagePlus, Trash2,
+  Compass, Fish, Waves, MapPin, Users, DollarSign, Loader2,
 } from "lucide-react";
+import { useBoats } from "../../context/BOAT_OWNER_CONTEXT/BoatContext";
+import { toast } from 'react-hot-toast';
 
 const STEPS = [
   { id: 1, label: "Basic Info" },
   { id: 2, label: "Trip Location" },
   { id: 3, label: "Boat & Pricing" },
-  { id: 4, label: "Schedule" },
-  { id: 5, label: "Media" },
-];
-
-// Mock boats data - in real app, this would come from your boats module
-const MOCK_BOATS = [
-  { id: "1", name: "Sea Hunter", capacity: 6, image: null },
-  { id: "2", name: "Flat Master", capacity: 4, image: null },
-  { id: "3", name: "Sunset Dream", capacity: 8, image: null },
-  { id: "4", name: "North Star", capacity: 4, image: null },
+  { id: 4, label: "Media" }, // أصبحت الخطوة الرابعة
 ];
 
 const defaultForm = {
@@ -31,17 +25,21 @@ const defaultForm = {
   boatId: "",
   pricePerPerson: "",
   maxParticipants: "",
-  availableDates: [],
+  // تم إزالة availableDates من هنا
   options: {
     guidedTrip: false,
     equipmentRental: false,
     snorkeling: false,
   },
   coverPreview: null,
+  newCoverPreview: null,
   galleryPreviews: [],
+  newGalleryPreviews: [],
+  imagesToDelete: [],
+  mainImageId: null,
+  existingImages: [],
 };
 
-/* ── Reusable field components ── */
 const Label = ({ children }) => (
   <label className="block text-[#a3cbf2]/60 text-xs font-medium mb-1.5 uppercase tracking-wider">
     {children}
@@ -84,12 +82,11 @@ const Textarea = ({ label, rows = 4, ...props }) => (
   </div>
 );
 
-/* ── Step 1: Basic Info ── */
 const Step1 = ({ form, set }) => (
   <div className="space-y-5">
     <Input 
       label="Trip Title" 
-      placeholder="e.g. Deep Sea Adventure — Gulf of Mexico" 
+      placeholder="e.g., Deep Sea Adventure — Gulf of Mexico" 
       value={form.title} 
       onChange={e => set("title", e.target.value)} 
       required
@@ -98,7 +95,7 @@ const Step1 = ({ form, set }) => (
     <Textarea 
       label="Short Description" 
       rows={2}
-      placeholder="Quick summary that appears in the card (e.g., 'Full-day offshore fishing for blue marlin and tuna')" 
+      placeholder="Quick summary that appears in the card" 
       value={form.shortDescription} 
       onChange={e => set("shortDescription", e.target.value)} 
     />
@@ -106,17 +103,13 @@ const Step1 = ({ form, set }) => (
     <Textarea 
       label="Detailed Description" 
       rows={6}
-      placeholder="Complete trip description including: fishing type, trip duration, expected experience, what's included, what to bring, etc."
+      placeholder="Complete trip description including: trip type, duration, expected experience, what's included, what to bring, etc."
       value={form.detailedDescription} 
       onChange={e => set("detailedDescription", e.target.value)} 
     />
-    <p className="text-[#a3cbf2]/20 text-xs -mt-2">
-      Include details like: type of fishing, duration, experience level needed, gear provided, etc.
-    </p>
   </div>
 );
 
-/* ── Step 2: Trip Location ── */
 const Step2 = ({ form, set }) => (
   <div className="space-y-5">
     <Input 
@@ -148,23 +141,15 @@ const Step2 = ({ form, set }) => (
         onChange={e => set("longitude", e.target.value)} 
       />
     </div>
-    
-    <div className="bg-sky-400/5 border border-sky-400/15 rounded-xl p-4">
-      <p className="text-[#a3cbf2]/50 text-xs flex items-center gap-1">
-        <MapPin size={12} /> Coordinates help customers find the exact meeting point
-      </p>
-    </div>
   </div>
 );
 
-/* ── Step 3: Boat & Pricing ── */
-const Step3 = ({ form, set, boats }) => {
+const Step3 = ({ form, set, boats, loadingBoats }) => {
   const selectedBoat = boats.find(b => b.id === form.boatId);
   const maxCapacity = selectedBoat?.capacity || 0;
   
   const handleBoatChange = (e) => {
     set("boatId", e.target.value);
-    // Reset max participants if exceeds new boat capacity
     if (form.maxParticipants > maxCapacity) {
       set("maxParticipants", "");
     }
@@ -186,6 +171,12 @@ const Step3 = ({ form, set, boats }) => {
         ))}
       </Select>
       
+      {loadingBoats && (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 size={24} className="text-sky-400 animate-spin" />
+        </div>
+      )}
+      
       {selectedBoat && (
         <div className="bg-teal-400/5 border border-teal-400/15 rounded-xl p-3">
           <p className="text-[#a3cbf2]/50 text-xs flex items-center gap-1">
@@ -200,6 +191,7 @@ const Step3 = ({ form, set, boats }) => {
         <input
           type="number" 
           min="0" 
+          step="0.01"
           placeholder="0.00" 
           value={form.pricePerPerson}
           onChange={e => set("pricePerPerson", e.target.value)}
@@ -222,12 +214,7 @@ const Step3 = ({ form, set, boats }) => {
         />
         {form.maxParticipants && maxCapacity && parseInt(form.maxParticipants) > maxCapacity && (
           <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
-            <span className="text-red-400">⚠️</span> Max participants cannot exceed boat capacity ({maxCapacity})
-          </p>
-        )}
-        {maxCapacity > 0 && (
-          <p className="text-[#a3cbf2]/30 text-xs mt-1">
-            Maximum allowed: {maxCapacity} persons (based on boat capacity)
+            <span>⚠️</span> Max participants cannot exceed boat capacity ({maxCapacity})
           </p>
         )}
       </div>
@@ -244,158 +231,8 @@ const Step3 = ({ form, set, boats }) => {
   );
 };
 
-/* ── Step 4: Schedule (Available Dates) ── */
-const Step4 = ({ form, set }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [tempDate, setTempDate] = useState(null);
-  
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    return new Date(year, month + 1, 0).getDate();
-  };
-  
-  const getFirstDay = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    return new Date(year, month, 1).getDay();
-  };
-  
-  const formatDateKey = (date) => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
-  
-  const isDateSelected = (day) => {
-    const dateKey = formatDateKey(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    return form.availableDates.includes(dateKey);
-  };
-  
-  const toggleDate = (day) => {
-    const dateKey = formatDateKey(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    const current = form.availableDates;
-    if (current.includes(dateKey)) {
-      set("availableDates", current.filter(d => d !== dateKey));
-    } else {
-      set("availableDates", [...current, dateKey]);
-    }
-  };
-  
-  const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-  
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
-  
-  const daysInMonth = getDaysInMonth(currentMonth);
-  const firstDay = getFirstDay(currentMonth);
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  
-  const cells = Array.from({ length: firstDay }, () => null).concat(
-    Array.from({ length: daysInMonth }, (_, i) => i + 1)
-  );
-  
-  const removeDate = (dateKey) => {
-    set("availableDates", form.availableDates.filter(d => d !== dateKey));
-  };
-  
-  return (
-    <div className="space-y-5">
-      <div>
-        <Label>Available Dates</Label>
-        <p className="text-[#a3cbf2]/30 text-xs mb-3">Select all dates when this trip is available for booking</p>
-        
-        {/* Calendar */}
-        <div className="bg-[#001526] rounded-xl p-4">
-          {/* Month Navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              type="button"
-              onClick={prevMonth}
-              className="p-1.5 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="text-[#cee5ff] font-medium text-sm">
-              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-            </span>
-            <button
-              type="button"
-              onClick={nextMonth}
-              className="p-1.5 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-          
-          {/* Day Names */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {dayNames.map(day => (
-              <div key={day} className="text-center text-[#a3cbf2]/30 text-xs py-1">
-                {day}
-              </div>
-            ))}
-          </div>
-          
-          {/* Days */}
-          <div className="grid grid-cols-7 gap-1">
-            {cells.map((day, i) => {
-              if (!day) return <div key={`empty-${i}`} />;
-              const isSelected = isDateSelected(day);
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDate(day)}
-                  className={`aspect-square rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center
-                    ${isSelected 
-                      ? "bg-sky-500 text-white" 
-                      : "bg-[#002238] text-[#a3cbf2]/60 hover:bg-white/5 hover:text-white"
-                    }`}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      
-      {/* Selected Dates List */}
-      {form.availableDates.length > 0 && (
-        <div>
-          <Label>Selected Dates ({form.availableDates.length})</Label>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {form.availableDates.map(dateKey => {
-              const [year, month, day] = dateKey.split('-');
-              return (
-                <span
-                  key={dateKey}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-sky-400/10 text-sky-400 text-xs"
-                >
-                  <CalendarIcon size={10} />
-                  {month}/{day}/{year}
-                  <button
-                    type="button"
-                    onClick={() => removeDate(dateKey)}
-                    className="ml-1 text-sky-400/60 hover:text-sky-300"
-                  >
-                    <X size={10} />
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ── Step 5: Media ── */
-const Step5 = ({ form, set }) => {
+// أصبحت خطوة الصور هي الخطوة الرابعة (Step4)
+const Step4 = ({ form, set, isEditing }) => {
   const coverRef = useRef(null);
   const galleryRef = useRef(null);
   
@@ -403,7 +240,10 @@ const Step5 = ({ form, set }) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => set("coverPreview", ev.target.result);
+    reader.onload = ev => {
+      set("newCoverPreview", ev.target.result);
+      set("coverPreview", ev.target.result);
+    };
     reader.readAsDataURL(file);
   };
   
@@ -411,13 +251,32 @@ const Step5 = ({ form, set }) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = ev => set("galleryPreviews", prev => [...(prev || []), ev.target.result]);
+      reader.onload = ev => {
+        set("newGalleryPreviews", prev => [...(prev || []), ev.target.result]);
+        set("galleryPreviews", prev => [...(prev || []), ev.target.result]);
+      };
       reader.readAsDataURL(file);
     });
   };
   
-  const removeGallery = (idx) => {
-    set("galleryPreviews", (form.galleryPreviews || []).filter((_, i) => i !== idx));
+  const removeExistingImage = (imageId) => {
+    set("imagesToDelete", [...form.imagesToDelete, imageId]);
+    set("existingImages", form.existingImages.filter(img => img.id !== imageId));
+  };
+  
+  const removeNewGalleryImage = (idx) => {
+    set("newGalleryPreviews", (form.newGalleryPreviews || []).filter((_, i) => i !== idx));
+    set("galleryPreviews", (form.galleryPreviews || []).filter((_, i) => i !== idx + form.existingImages.length));
+  };
+  
+  const setAsMainImage = (imageId) => {
+    set("mainImageId", imageId);
+  };
+  
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '';
+    if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) return imageUrl;
+    return `https://hook.runasp.net${imageUrl}`;
   };
   
   return (
@@ -435,7 +294,7 @@ const Step5 = ({ form, set }) => {
         >
           {form.coverPreview ? (
             <>
-              <img src={form.coverPreview} alt="cover" className="w-full h-full object-cover" />
+              <img src={getImageUrl(form.coverPreview)} alt="cover" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
                 <div className="flex items-center gap-2 text-white text-sm font-medium">
                   <Upload size={16} /> Change Cover
@@ -453,17 +312,55 @@ const Step5 = ({ form, set }) => {
         <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCover} />
       </div>
       
-      {/* Gallery */}
+      {/* Photo Gallery */}
       <div>
         <Label>Photo Gallery</Label>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-1">
-          {(form.galleryPreviews || []).map((src, i) => (
-            <div key={`${src.slice(-20)}-${i}`} className="relative group aspect-square rounded-xl overflow-hidden">
+          {/* Existing Images */}
+          {form.existingImages.map((img) => (
+            <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-sky-400/30 transition-all">
+              <img src={getImageUrl(img.imageUrl)} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAsMainImage(img.id)}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                    form.mainImageId === img.id
+                      ? "bg-sky-500 text-white"
+                      : "bg-white/20 text-white hover:bg-sky-500/80"
+                  }`}
+                >
+                  {form.mainImageId === img.id ? "Main" : "Set Main"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeExistingImage(img.id)}
+                  className="w-6 h-6 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+                >
+                  <Trash2 size={11} className="text-white" />
+                </button>
+              </div>
+              {img.isMainImage && !form.mainImageId && (
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-sky-500 rounded-md text-white text-[10px] font-bold">
+                  MAIN
+                </div>
+              )}
+              {form.mainImageId === img.id && (
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-sky-500 rounded-md text-white text-[10px] font-bold">
+                  MAIN
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {/* New Gallery Images */}
+          {(form.newGalleryPreviews || []).map((src, i) => (
+            <div key={`new-${i}`} className="relative group aspect-square rounded-xl overflow-hidden">
               <img src={src} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-end p-1">
                 <button
                   type="button"
-                  onClick={() => removeGallery(i)}
+                  onClick={() => removeNewGalleryImage(i)}
                   className="w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-red-500/80 transition-colors"
                 >
                   <Trash2 size={11} className="text-white" />
@@ -472,6 +369,7 @@ const Step5 = ({ form, set }) => {
             </div>
           ))}
           
+          {/* Add Button */}
           <button
             type="button"
             onClick={() => galleryRef.current?.click()}
@@ -490,16 +388,42 @@ const Step5 = ({ form, set }) => {
   );
 };
 
-/* ── Main Wizard ── */
 const TripWizard = ({ trip = null, onClose, onSave }) => {
+  const { boats, loading: loadingBoats } = useBoats();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState(
-    trip
-      ? { ...defaultForm, ...trip }
-      : defaultForm
-  );
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(() => {
+    if (trip) {
+      return {
+        title: trip.title || "",
+        shortDescription: trip.shortDescription || "",
+        detailedDescription: trip.detailedDescription || "",
+        locationName: trip.locationName || "",
+        address: trip.address || "",
+        latitude: trip.latitude || "",
+        longitude: trip.longitude || "",
+        boatId: trip.boatId || "",
+        pricePerPerson: trip.pricePerPerson || "",
+        maxParticipants: trip.maxParticipants || "",
+        // لا يوجد تواريخ هنا
+        options: {
+          guidedTrip: trip.isGuided || false,
+          equipmentRental: trip.hasEquipmentRental || false,
+          snorkeling: trip.hasSnorkeling || false,
+        },
+        coverPreview: trip.mainImageUrl || null,
+        newCoverPreview: null,
+        galleryPreviews: trip.images?.filter(img => !img.isMainImage).map(img => img.imageUrl) || [],
+        newGalleryPreviews: [],
+        imagesToDelete: [],
+        mainImageId: trip.images?.find(img => img.isMainImage)?.id || null,
+        existingImages: trip.images || [],
+      };
+    }
+    return { ...defaultForm };
+  });
   
-  const selectedBoat = MOCK_BOATS.find(b => b.id === form.boatId);
+  const selectedBoat = boats.find(b => b.id === form.boatId);
   const maxCapacity = selectedBoat?.capacity || 0;
   
   const set = (key, val) =>
@@ -527,7 +451,7 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
       return null;
     }
     if (step === 4) {
-      if (form.availableDates.length === 0) return "Please select at least one available date";
+      if (!form.coverPreview && !form.mainImageId) return "Please upload a cover image";
       return null;
     }
     return null;
@@ -536,36 +460,46 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
   const handleNext = () => {
     const error = validateStep();
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
     setStep(s => s + 1);
   };
   
-  const handleSave = (status) => {
-    // Final validation
-    if (!form.title) { alert("Trip title is required"); return; }
-    if (!form.locationName) { alert("Location name is required"); return; }
-    if (!form.boatId) { alert("Please select a boat"); return; }
-    if (!form.pricePerPerson) { alert("Price per person is required"); return; }
-    if (!form.maxParticipants) { alert("Max participants is required"); return; }
-    if (parseInt(form.maxParticipants) > maxCapacity) { alert("Max participants cannot exceed boat capacity"); return; }
-    if (form.availableDates.length === 0) { alert("Please select at least one available date"); return; }
+  const handleSave = async () => {
+    const error = validateStep();
+    if (error) {
+      toast.error(error);
+      return;
+    }
     
-    onSave({ ...form, status });
+    setSaving(true);
+    try {
+      const submitData = {
+        ...form,
+        pricePerPerson: parseFloat(form.pricePerPerson),
+        maxParticipants: parseInt(form.maxParticipants),
+        latitude: form.latitude ? parseFloat(form.latitude) : 0,
+        longitude: form.longitude ? parseFloat(form.longitude) : 0,
+      };
+      
+      await onSave(submitData);
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setSaving(false);
+    }
   };
   
   const stepContent = [
     <Step1 key={1} form={form} set={set} />,
     <Step2 key={2} form={form} set={set} />,
-    <Step3 key={3} form={form} set={set} boats={MOCK_BOATS} />,
-    <Step4 key={4} form={form} set={set} />,
-    <Step5 key={5} form={form} set={set} />,
+    <Step3 key={3} form={form} set={set} boats={boats} loadingBoats={loadingBoats} />,
+    <Step4 key={4} form={form} set={set} isEditing={!!trip} />, // خطوة الصور بقت رقم 4
   ];
   
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">
@@ -583,7 +517,6 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
         </button>
       </div>
       
-      {/* Progress Bar */}
       <div className="bg-[#002238] border border-white/5 rounded-2xl p-4">
         <div className="flex items-center gap-2">
           {STEPS.map((s, i) => (
@@ -615,14 +548,12 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
         </div>
       </div>
       
-      {/* Step Content */}
       <div className="bg-[#002238] border border-white/5 rounded-2xl p-6 transition-all duration-300">
         <div key={step} className="animate-[fadeUp_0.25s_ease-out]">
           {stepContent[step - 1]}
         </div>
       </div>
       
-      {/* Extra Options Section - displayed in Step 3 or as separate */}
       <div className="bg-[#002238] border border-white/5 rounded-2xl p-6">
         <h2 className="text-base font-bold text-[#cee5ff] mb-4">Extra Options</h2>
         <div className="flex flex-wrap gap-3">
@@ -648,11 +579,11 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
         </div>
       </div>
       
-      {/* Navigation */}
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => step > 1 ? setStep(s => s - 1) : onClose()}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200"
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={16} />
           {step > 1 ? "Back" : "Cancel"}
@@ -660,20 +591,14 @@ const TripWizard = ({ trip = null, onClose, onSave }) => {
         
         <div className="flex items-center gap-2">
           {step === STEPS.length ? (
-            <>
-              <button
-                onClick={() => handleSave("Draft")}
-                className="px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all duration-200"
-              >
-                Save as Draft
-              </button>
-              <button
-                onClick={() => handleSave("Active")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/25 transition-all duration-200"
-              >
-                <Check size={15} /> Publish Trip
-              </button>
-            </>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+              {saving ? "Saving..." : (trip ? "Update Trip" : "Create Trip")}
+            </button>
           ) : (
             <button
               onClick={handleNext}

@@ -3,6 +3,8 @@ import {
   LayoutDashboard, Package, ShoppingCart, DollarSign,
   Star, Settings, LogOut, X, Store,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const navItems = [
   { to: "/seller", label: "Dashboard", icon: LayoutDashboard },
@@ -15,9 +17,12 @@ const navItems = [
 
 const SellerSidebar = ({ onClose }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    navigate("/login");
+    logout();
+    toast.success("Logged out successfully. See you soon!");
+    navigate("/login", { replace: true });
     if (onClose) onClose();
   };
 
