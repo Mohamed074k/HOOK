@@ -4,7 +4,7 @@ import { Plus, MapPin, Users, Compass, Pencil, Trash2, Eye, Loader2, Search, Cal
 import { useTrips } from "../../context/BOAT_OWNER_CONTEXT/TripContext";
 import TripWizard from "../../components/BOAT_OWNER_COMPONENTS/TripWizard";
 import TripDetails from "../../components/BOAT_OWNER_COMPONENTS/TripDetails";
-
+import TripReviews from "../../components/BOAT_OWNER_COMPONENTS/TripReviews";
 const optionIcons = {
   guidedTrip: { icon: Compass, label: "Guided" },
   equipmentRental: { icon: Compass, label: "Equipment" },
@@ -60,6 +60,12 @@ const GuideTripsPage = () => {
     setSelectedTrip(null);
   };
 
+  const openReviews = (trip) => {
+    setSelectedTrip(trip);
+    setView("reviews");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleSave = async (formData) => {
     try {
       if (selectedTrip) {
@@ -106,9 +112,13 @@ const GuideTripsPage = () => {
   }
 
   if (view === "details" && selectedTrip) {
-    return <TripDetails trip={selectedTrip} onClose={closeWizard} onEdit={openEdit} animate={animate} />;
+    return <TripDetails trip={selectedTrip} onClose={closeWizard} onEdit={openEdit} onViewReviews={openReviews} animate={animate} />;
   }
 
+  if (view === "reviews" && selectedTrip) {
+    return <TripReviews trip={selectedTrip} onBack={() => setView("details")} animate={animate} />;
+  }
+  
   return (
     <div className="space-y-6">
       <div className={`transform transition-all duration-700 ease-out ${

@@ -1,17 +1,20 @@
 // src/components/BOAT_OWNER_COMPONENTS/TripDetails.js
 import { useState } from "react";
-import { MapPin, Calendar, Users, DollarSign, Compass, Fish, Waves, Ship, Clock, X, Pencil, Plus, Loader2 } from "lucide-react";
+import { MapPin, Calendar, Users, DollarSign, Compass, Fish, Waves, Ship, Clock, X, Pencil, Plus, Loader2, CheckCircle, XCircle, Star } from "lucide-react";
 import { useTrips } from "../../context/BOAT_OWNER_CONTEXT/TripContext";
 import { toast } from 'react-hot-toast';
 
-const TripDetails = ({ trip, onClose, onEdit, animate }) => {
-  const { addNewTripDates } = useTrips();
+const TripDetails = ({ trip, onClose, onEdit, onViewReviews, animate }) => {
+  const { addNewTripDates, toggleDateStatus } = useTrips();
   
   // States for adding new date
   const [showAddDate, setShowAddDate] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newSeats, setNewSeats] = useState(trip.maxParticipants || 1);
   const [addingDate, setAddingDate] = useState(false);
+  
+  // State for toggling date status
+  const [togglingDateId, setTogglingDateId] = useState(null);
   
   // Local state to show newly added dates instantly without closing the modal
   const [displayedDates, setDisplayedDates] = useState(trip.tripDates || []);
@@ -31,22 +34,20 @@ const TripDetails = ({ trip, onClose, onEdit, animate }) => {
 
     setAddingDate(true);
     try {
-      // إرسال التاريخ للباك إند
       await addNewTripDates(trip.id, [{
         startDate: newDate,
         availableSeats: newSeats
       }]);
 
-      // تحديث الواجهة فوراً بالتاريخ الجديد
       setDisplayedDates(prev => [...prev, {
-        id: Math.random().toString(), // ID مؤقت للعرض بس
+        id: Math.random().toString(),
         startDate: new Date(newDate).toISOString(),
-        availableSeats: newSeats
+        availableSeats: newSeats,
+        isActive: true // New dates are active by default
       }].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)));
 
       toast.success("Date added successfully!");
       
-      // تصفير الفورم وقفلها
       setShowAddDate(false);
       setNewDate("");
       setNewSeats(trip.maxParticipants || 1);
@@ -54,6 +55,25 @@ const TripDetails = ({ trip, onClose, onEdit, animate }) => {
       toast.error("Failed to add date. Please try again.");
     } finally {
       setAddingDate(false);
+    }
+  };
+
+  // Handle toggling date status (active/inactive)
+  const handleToggleStatus = async (dateId, currentStatus) => {
+    setTogglingDateId(dateId);
+    try {
+      const newStatus = !currentStatus;
+      await toggleDateStatus(dateId, newStatus);
+      
+      // Update local state to reflect the change immediately
+      setDisplayedDates(prev => prev.map(date => 
+        date.id === dateId ? { ...date, isActive: newStatus } : date
+      ));
+    } catch (error) {
+      console.error("Error toggling date status:", error);
+      // Error is already handled in context with toast
+    } finally {
+      setTogglingDateId(null);
     }
   };
 
@@ -67,6 +87,13 @@ const TripDetails = ({ trip, onClose, onEdit, animate }) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewReviews(trip)}
+            className="p-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
+            title="View Reviews"
+          >
+            <Star size={18} />
+          </button>
           <button
             onClick={() => onEdit(trip)}
             className="p-2 rounded-xl bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 transition-all"
@@ -258,27 +285,66 @@ const TripDetails = ({ trip, onClose, onEdit, animate }) => {
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                 {displayedDates.map((date) => {
                   const dateObj = new Date(date.startDate);
+                  const isActive = date.isActive !== false; // Default to true if not specified
+                  const isToggling = togglingDateId === date.id;
+                  
                   return (
-                    <div key={date.id} className="flex items-center justify-between p-3 rounded-xl bg-[#001526] border border-white/5 hover:border-white/10 transition-colors">
+                    <div 
+                      key={date.id} 
+                      className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#001526] border-white/5 hover:border-white/10' 
+                          : 'bg-[#001526]/50 border-red-500/20 opacity-60'
+                      }`}
+                    >
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-1.5">
-                          <Calendar size={12} className="text-sky-400" />
-                          <span className="text-[#cee5ff] text-sm font-medium">
+                          <Calendar size={12} className={isActive ? 'text-sky-400' : 'text-red-400'} />
+                          <span className={`text-sm font-medium ${isActive ? 'text-[#cee5ff]' : 'text-[#a3cbf2]/50'}`}>
                             {dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
+                          {!isActive && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400">
+                              Inactive
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 pl-4">
                           <Clock size={11} className="text-[#a3cbf2]/40" />
-                          <span className="text-[#a3cbf2]/60 text-xs">
+                          <span className={`text-xs ${isActive ? 'text-[#a3cbf2]/60' : 'text-[#a3cbf2]/30'}`}>
                             {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 bg-[#002238] px-2.5 py-1 rounded-lg border border-white/5">
-                        <Users size={12} className="text-emerald-400" />
-                        <span className="text-[#a3cbf2]/80 text-xs font-medium">
-                          {date.availableSeats}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+                          isActive ? 'bg-[#002238] border-white/5' : 'bg-[#002238]/50 border-red-500/20'
+                        }`}>
+                          <Users size={12} className={isActive ? 'text-emerald-400' : 'text-red-400/50'} />
+                          <span className={`text-xs font-medium ${isActive ? 'text-[#a3cbf2]/80' : 'text-[#a3cbf2]/40'}`}>
+                            {date.availableSeats}
+                          </span>
+                        </div>
+                        
+                        {/* Toggle Status Button */}
+                        <button
+                          onClick={() => handleToggleStatus(date.id, isActive)}
+                          disabled={isToggling}
+                          className={`p-1.5 rounded-lg transition-all duration-200 ${
+                            isActive
+                              ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                              : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                          }`}
+                          title={isActive ? "Deactivate Date" : "Activate Date"}
+                        >
+                          {isToggling ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : isActive ? (
+                            <CheckCircle size={14} />
+                          ) : (
+                            <XCircle size={14} />
+                          )}
+                        </button>
                       </div>
                     </div>
                   );

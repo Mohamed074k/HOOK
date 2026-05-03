@@ -49,6 +49,12 @@ export const addTripDates = async (id, datesData) => {
   return data;
 };
 
+// ─── Toggle Date Status ───────────────────────────────────
+export const toggleDateStatus = async (dateId, isActive) => {
+  const { data } = await apiClient.patch(`/api/Trips/boatowner/toggle-date-status/${dateId}?isActive=${isActive}`);
+  return data;
+};
+
 // ─── Delete Trip ────────────────────────────────────────────────────────────
 export const deleteTrip = async (id) => {
   const { data } = await apiClient.delete(`/api/Trips/boatowner/delete/${id}`);

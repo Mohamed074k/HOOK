@@ -8,6 +8,7 @@ import { ProfileProvider } from "./context/ProfileContext";
 import { CartProvider } from "./context/CartContext"; 
 import { BoatProvider } from "./context/BOAT_OWNER_CONTEXT/BoatContext"; 
 import { TripProvider } from "./context/BOAT_OWNER_CONTEXT/TripContext"; 
+import { BookingProvider } from "./context/BOAT_OWNER_CONTEXT/BookingContext"; 
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById("root")).render(
     <CartProvider>
       <BoatProvider>
       <TripProvider>
+      <BookingProvider>
         <Router />
         <Toaster
           position="top-right"
@@ -28,6 +30,7 @@ createRoot(document.getElementById("root")).render(
             },
           }}
         />
+      </BookingProvider>
       </TripProvider>
       </BoatProvider>
       </CartProvider>

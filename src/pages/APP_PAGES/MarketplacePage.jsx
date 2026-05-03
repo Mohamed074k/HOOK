@@ -7,36 +7,38 @@ import {
 import gsap from "gsap";
 import { useCart } from "./../../context/CartContext";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Mock data with real images ───────────────────────────────────────────────
 const PRODUCTS = [
-  { id: 1, name: "Apex Carbon Reel", price: 849, type: "New Release", desc: "Precision engineered for deep-sea saltwater expeditions.", emoji: "🎣", rating: 4.8, seller: "Nautilus Co.", inStock: 12 },
-  { id: 2, name: "HydroScan V3", price: 1299, type: "Electronic", desc: "Real-time topographic sonar with depth-track tech.", emoji: "📡", rating: 4.9, seller: "DeepWave", inStock: 5 },
-  { id: 3, name: "Deep Bait Master", price: 145, type: "Essentials", desc: "12 bioluminescent lures for night expeditions.", emoji: "🪝", rating: 4.6, seller: "Reef & Reel", inStock: 47 },
-  { id: 4, name: "Nautical One Pro", price: 550, type: "Wearable", desc: "Tide-tracking GPS with 100m depth resistance.", emoji: "⌚", rating: 4.7, seller: "TideTech", inStock: 22 },
-  { id: 5, name: "Offshore Tackle Box", price: 320, type: "Essentials", desc: "Waterproof case with 24 modular compartments.", emoji: "🧰", rating: 4.5, seller: "Reef & Reel", inStock: 18 },
-  { id: 6, name: "CarbonFlex Rod 9ft", price: 720, type: "New Release", desc: "Ultra-light carbon fiber for precision casting.", emoji: "🎯", rating: 4.8, seller: "Nautilus Co.", inStock: 9 },
-  { id: 7, name: "AquaVision Goggles", price: 240, type: "Wearable", desc: "Anti-fog optics for crystal underwater clarity.", emoji: "🥽", rating: 4.4, seller: "DeepWave", inStock: 31 },
-  { id: 8, name: "Storm Anchor 25kg", price: 410, type: "Essentials", desc: "Galvanized steel grip for heavy weather holds.", emoji: "⚓", rating: 4.9, seller: "HarborWorks", inStock: 14 },
-  { id: 9, name: "Tempest Wind Meter", price: 189, type: "Electronic", desc: "Pocket anemometer with bluetooth telemetry.", emoji: "🌬️", rating: 4.3, seller: "TideTech", inStock: 26 },
+  { id: 1, name: "Apex Carbon Reel", price: 849, type: "New Release", desc: "Precision engineered for deep-sea saltwater expeditions.", image: "https://images.unsplash.com/photo-1583626270633-2af4134c5c1f?w=600&h=400&fit=crop", rating: 4.8, seller: "Nautilus Co.", inStock: 12 },
+  { id: 2, name: "HydroScan V3", price: 1299, type: "Electronic", desc: "Real-time topographic sonar with depth-track tech.", image: "https://images.unsplash.com/photo-1505228395891-9a51e7c86b3b?w=600&h=400&fit=crop", rating: 4.9, seller: "DeepWave", inStock: 5 },
+  { id: 3, name: "Deep Bait Master", price: 145, type: "Essentials", desc: "12 bioluminescent lures for night expeditions.", image: "https://images.unsplash.com/photo-1548601220-7fb15c81b142?w=600&h=400&fit=crop", rating: 4.6, seller: "Reef & Reel", inStock: 47 },
+  { id: 4, name: "Nautical One Pro", price: 550, type: "Wearable", desc: "Tide-tracking GPS with 100m depth resistance.", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=400&fit=crop", rating: 4.7, seller: "TideTech", inStock: 22 },
+  { id: 5, name: "Offshore Tackle Box", price: 320, type: "Essentials", desc: "Waterproof case with 24 modular compartments.", image: "https://images.unsplash.com/photo-1563780988679-b0d3c1df9e04?w=600&h=400&fit=crop", rating: 4.5, seller: "Reef & Reel", inStock: 18 },
+  { id: 6, name: "CarbonFlex Rod 9ft", price: 720, type: "New Release", desc: "Ultra-light carbon fiber for precision casting.", image: "https://images.unsplash.com/photo-1552023611-884b182b9f2d?w=600&h=400&fit=crop", rating: 4.8, seller: "Nautilus Co.", inStock: 9 },
+  { id: 7, name: "AquaVision Goggles", price: 240, type: "Wearable", desc: "Anti-fog optics for crystal underwater clarity.", image: "https://images.unsplash.com/photo-1573062553703-526893dc2e1e?w=600&h=400&fit=crop", rating: 4.4, seller: "DeepWave", inStock: 31 },
+  { id: 8, name: "Storm Anchor 25kg", price: 410, type: "Essentials", desc: "Galvanized steel grip for heavy weather holds.", image: "https://images.unsplash.com/photo-1571624436279-b272aff752d5?w=600&h=400&fit=crop", rating: 4.9, seller: "HarborWorks", inStock: 14 },
+  { id: 9, name: "Tempest Wind Meter", price: 189, type: "Electronic", desc: "Pocket anemometer with bluetooth telemetry.", image: "https://images.unsplash.com/photo-1581244276028-9df7d4aadcd9?w=600&h=400&fit=crop", rating: 4.3, seller: "TideTech", inStock: 26 },
 ];
 
 const TYPES = ["All", "New Release", "Electronic", "Wearable", "Essentials"];
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── Skeleton with reduced image height ──────────────────────────────────────
 const ProductSkeleton = () => (
-  <div className="bg-[#002238] border border-white/5 rounded-2xl p-6">
-    <div className="aspect-square bg-[#001526] rounded-xl mb-4 animate-pulse" />
-    <div className="h-3 w-20 bg-[#001526] rounded animate-pulse mb-2" />
-    <div className="h-5 w-32 bg-[#001526] rounded animate-pulse mb-2" />
-    <div className="h-3 w-full bg-[#001526] rounded animate-pulse mb-4" />
-    <div className="flex justify-between">
-      <div className="h-6 w-16 bg-[#001526] rounded animate-pulse" />
-      <div className="h-9 w-9 bg-[#001526] rounded-lg animate-pulse" />
+  <div className="bg-[#002238] border border-white/5 rounded-2xl overflow-hidden">
+    <div className="h-40 bg-[#001526] animate-pulse" />
+    <div className="p-5">
+      <div className="h-3 w-20 bg-[#001526] rounded animate-pulse mb-2" />
+      <div className="h-5 w-32 bg-[#001526] rounded animate-pulse mb-2" />
+      <div className="h-3 w-full bg-[#001526] rounded animate-pulse mb-4" />
+      <div className="flex justify-between items-center">
+        <div className="h-6 w-16 bg-[#001526] rounded animate-pulse" />
+        <div className="h-9 w-20 bg-[#001526] rounded-lg animate-pulse" />
+      </div>
     </div>
   </div>
 );
 
-// ─── Animated Background ──────────────────────────────────────────────────────
+// ─── Animated Background (unchanged) ─────────────────────────────────────────
 const AnimatedBackground = () => {
   const bgRef = useRef(null);
 
@@ -62,7 +64,7 @@ const AnimatedBackground = () => {
   );
 };
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+// ─── Hero Section ─────────────────────────────────────────────────────────────
 const HeroSection = () => {
   const heroRef = useRef(null);
 
@@ -81,7 +83,7 @@ const HeroSection = () => {
         <Sparkles size={14} className="text-sky-400" />
         <span className="text-xs text-sky-300 font-medium tracking-wide">THE GEAR LOCKER</span>
       </div>
-      <h1 className="m-hero-title text-5xl md:text-6xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent mb-3">
+      <h1 className="m-hero-title text-5xl md:text-6xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent mb-3 pb-2 leading-tight">
         Equip the Voyage
       </h1>
       <p className="m-hero-subtitle text-[#a3cbf2]/60 text-lg max-w-2xl mx-auto">
@@ -91,7 +93,7 @@ const HeroSection = () => {
   );
 };
 
-// ─── Search Bar ───────────────────────────────────────────────────────────────
+// ─── Search Bar (unchanged) ──────────────────────────────────────────────────
 const SearchBar = ({ searchTerm, setSearchTerm }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
@@ -130,7 +132,7 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => {
   );
 };
 
-// ─── Filter Panel ─────────────────────────────────────────────────────────────
+// ─── Filter Panel (unchanged) ────────────────────────────────────────────────
 const FilterPanel = ({ filters, setFilters }) => {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef(null);
@@ -211,7 +213,7 @@ const FilterPanel = ({ filters, setFilters }) => {
   );
 };
 
-// ─── Sorting Dropdown ─────────────────────────────────────────────────────────
+// ─── Sorting Dropdown (unchanged) ────────────────────────────────────────────
 const SortingDropdown = ({ sortBy, setSortBy }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -262,34 +264,80 @@ const SortingDropdown = ({ sortBy, setSortBy }) => {
   );
 };
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
-const ProductCard = ({ product }) => {
-  const { addToCart } = useCart(); // Integrating the Context Here
+// ─── Product Card (unchanged) ────────────────────────────────────────────────
+const ProductCard = ({ product, index }) => {
+  const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const cardRef = useRef(null);
-  const emojiRef = useRef(null);
+  const imageRef = useRef(null);
   const glowRef = useRef(null);
+
+  // Intersection Observer for scroll animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.unobserve(entry.target); // Stop observing once visible
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -50px 0px",
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      if (cardRef.current) {
+        observer.unobserve(cardRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isHovered) {
       gsap.to(cardRef.current, { y: -6, duration: 0.4, ease: "power2.out" });
-      gsap.to(emojiRef.current, { scale: 1.15, rotate: -6, duration: 0.5, ease: "power2.out" });
+      gsap.to(imageRef.current, { scale: 1.05, duration: 0.5, ease: "power2.out" });
       gsap.to(glowRef.current, { opacity: 0.5, duration: 0.3 });
     } else {
       gsap.to(cardRef.current, { y: 0, duration: 0.4, ease: "power2.out" });
-      gsap.to(emojiRef.current, { scale: 1, rotate: 0, duration: 0.5, ease: "power2.out" });
+      gsap.to(imageRef.current, { scale: 1, duration: 0.5, ease: "power2.out" });
       gsap.to(glowRef.current, { opacity: 0, duration: 0.3 });
     }
   }, [isHovered]);
 
   return (
-    <div ref={cardRef} className="relative group cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+    <motion.div
+      ref={cardRef}
+      className="relative group cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      initial={{ opacity: 0, y: 80 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 80 }}
+      transition={{
+        duration: 0.7,
+        delay: index * 0.05,
+        ease: [0.25, 0.1, 0.25, 1], // Custom smooth easing
+      }}
+    >
       <div ref={glowRef} className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-sky-500/30 to-cyan-500/30 opacity-0 blur-xl transition-opacity duration-500" />
 
       <div className="relative bg-[#002238] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:border-white/10">
-        <div className="relative aspect-square bg-gradient-to-br from-[#002c49] to-[#001526] flex items-center justify-center overflow-hidden">
-          <div ref={emojiRef} className="text-7xl">{product.emoji}</div>
+        <div className="relative h-40 bg-gradient-to-br from-[#002c49] to-[#001526] overflow-hidden">
+          <img
+            ref={imageRef}
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500"
+            loading="lazy"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent" />
 
           <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-2.5 py-1">
@@ -324,7 +372,7 @@ const ProductCard = ({ product }) => {
             </div>
             <motion.button
               onClick={(e) => {
-                e.stopPropagation(); // Prevents clicking the button from triggering potential future card clicks
+                e.stopPropagation();
                 addToCart(product);
               }}
               className="flex-1 py-2.5 rounded-xl bg-sky-400/10 border border-sky-400/20 text-sky-400 text-sm font-semibold flex items-center justify-center gap-2 overflow-hidden relative group/btn"
@@ -338,7 +386,7 @@ const ProductCard = ({ product }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -348,7 +396,6 @@ const MarketplacePage = () => {
   const [sortBy, setSortBy] = useState("price_asc");
   const [filters, setFilters] = useState({ type: "All", minPrice: 0, maxPrice: 1500 });
   const [isLoading, setIsLoading] = useState(true);
-  const gridRef = useRef(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -374,16 +421,6 @@ const MarketplacePage = () => {
     return list;
   }, [searchTerm, filters, sortBy]);
 
-  useEffect(() => {
-    if (gridRef.current && !isLoading && filteredProducts.length > 0) {
-      gsap.fromTo(
-        gridRef.current.children,
-        { opacity: 0, y: 20, scale: 0.98 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.05, ease: "back.out(0.3)" }
-      );
-    }
-  }, [filteredProducts, isLoading]);
-
   const hasActiveFilters = filters.type !== "All" || filters.minPrice > 0 || filters.maxPrice < 1500;
 
   const clearAll = useCallback(() => {
@@ -392,52 +429,81 @@ const MarketplacePage = () => {
   }, []);
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto relative pt-8 px-4 md:px-8 min-h-screen bg-[#001526] text-[#cee5ff]">
-      <AnimatedBackground />
+    <>
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        /* For Webkit browsers (Chrome, Safari, Edge) */
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: #001526;
+          border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+          border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #38bdf8, #22d3ee);
+        }
+        
+        /* For Firefox */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #0ea5e9 #001526;
+        }
+      `}</style>
+      
+      <div className="space-y-6 pb-12 max-w-7xl mx-auto relative pt-8 px-4 md:px-8 min-h-screen bg-[#001526] text-[#cee5ff]">
+        <AnimatedBackground />
 
-      <HeroSection />
+        <HeroSection />
 
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      <div className="flex flex-wrap justify-between items-center gap-3 mt-8 mb-6">
-        <div className="flex gap-2 flex-1">
-          <FilterPanel filters={filters} setFilters={setFilters} />
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-[#a3cbf2]/40 hidden sm:inline">
-              {filteredProducts.length} items found
-            </span>
-            <SortingDropdown sortBy={sortBy} setSortBy={setSortBy} />
+        <div className="flex flex-wrap justify-between items-center gap-3 mt-8 mb-6">
+          <div className="flex gap-2 flex-1">
+            <FilterPanel filters={filters} setFilters={setFilters} />
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-xs text-[#a3cbf2]/40 hidden sm:inline">
+                {filteredProducts.length} items found
+              </span>
+              <SortingDropdown sortBy={sortBy} setSortBy={setSortBy} />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-between items-center sm:hidden mb-4">
-        <span className="text-xs text-[#a3cbf2]/40">{filteredProducts.length} items found</span>
-      </div>
+        <div className="flex justify-between items-center sm:hidden mb-4">
+          <span className="text-xs text-[#a3cbf2]/40">{filteredProducts.length} items found</span>
+        </div>
 
-      {hasActiveFilters && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2 mb-6">
-          {filters.type !== "All" && (
-            <span className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-400/20 text-xs flex items-center gap-1">
-              Category: {filters.type}
-              <button onClick={() => setFilters({ ...filters, type: "All" })}><X size={10} /></button>
-            </span>
-          )}
-          {(filters.minPrice > 0 || filters.maxPrice < 1500) && (
-            <span className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-400/20 text-xs flex items-center gap-1">
-              ${filters.minPrice} - ${filters.maxPrice}
-              <button onClick={() => setFilters({ ...filters, minPrice: 0, maxPrice: 1500 })}><X size={10} /></button>
-            </span>
-          )}
-        </motion.div>
-      )}
+        {hasActiveFilters && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2 mb-6">
+            {filters.type !== "All" && (
+              <span className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-400/20 text-xs flex items-center gap-1">
+                Category: {filters.type}
+                <button onClick={() => setFilters({ ...filters, type: "All" })}><X size={10} /></button>
+              </span>
+            )}
+            {(filters.minPrice > 0 || filters.maxPrice < 1500) && (
+              <span className="px-2 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-400/20 text-xs flex items-center gap-1">
+                ${filters.minPrice} - ${filters.maxPrice}
+                <button onClick={() => setFilters({ ...filters, minPrice: 0, maxPrice: 1500 })}><X size={10} /></button>
+              </span>
+            )}
+          </motion.div>
+        )}
 
-      <AnimatePresence mode="wait">
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading ? (
             Array(6).fill(0).map((_, i) => <ProductSkeleton key={i} />)
           ) : filteredProducts.length > 0 ? (
-            filteredProducts.map((p) => <ProductCard key={p.id} product={p} />)
+            filteredProducts.map((p, idx) => <ProductCard key={p.id} product={p} index={idx} />)
           ) : (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
               className="col-span-full text-center py-16">
@@ -451,8 +517,8 @@ const MarketplacePage = () => {
             </motion.div>
           )}
         </div>
-      </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };
 

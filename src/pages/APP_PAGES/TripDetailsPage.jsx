@@ -1,3 +1,4 @@
+// src/pages/USER_PAGES/TripDetailsPage.jsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -7,89 +8,21 @@ import {
   Droplets, Fish, Compass, Navigation, Phone, Mail,
   Gift, Heart, Share2, Bookmark, Maximize2, Minimize2, X, ChevronDown,
   Info, Package, Settings, Award, Briefcase, DollarSign, Link as LinkIcon,
-  Clock as ClockIcon, UserCheck
+  Clock as ClockIcon, UserCheck, MessageCircle, ThumbsUp
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import apiClient from "../../api/apiClient";
 import toast from "react-hot-toast";
 
 const ease = [0.25, 0.46, 0.45, 0.94];
 
-// ─── Trip Data ────────────────────────────────────────────────────────────────
-const tripsData = [
-  { 
-    id: 1,
-    title: "Deep Sea Fishing Adventure", 
-    location: "Gulf of Mexico, Florida", 
-    duration: "8 hours", 
-    crew: 6, 
-    price: 1000,
-    priceDisplay: "$1,000",
-    images: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&h=900&fit=crop",
-    ],
-    rating: 4.9,
-    reviews: 128,
-    featured: true,
-    water: "Gulf of Mexico",
-    boat: "Ocean Hunter Pro",
-    description: "Enjoy a day-long adventure in the deep-sea fishing experience of the Gulf of Mexico. Cruise and depart with expert anglers. Our luxury vessel is designed with the safety of your family in mind. Experience the thrill of catching Marlin, Tuna, and Mahi-Mahi with our state-of-the-art equipment and experienced crew.",
-    captain: {
-      name: "Captain John Smith",
-      experience: "15+ years",
-      totalTrips: 342,
-      image: "https://randomuser.me/api/portraits/men/32.jpg",
-      bio: "Master angler with over 15 years of experience in the Gulf waters"
-    },
-    cabin: "First Class Luxury Suite",
-    equipment: ["Tackle Boxes", "Lures & Repellents", "Fish Finder", "GPS Navigation", "Live Bait Wells", "Outriggers", "Fighting Chair"],
-    amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Mini Bar", "Entertainment System", "Sun Deck"],
-    departureDates: ["May 15, 2024", "May 22, 2024", "May 29, 2024", "June 5, 2024"],
-    included: ["Professional Guide", "Fishing License", "Tackle & Gear", "Snacks & Drinks", "Photos & Videos", "Safety Equipment"],
-    itinerary: [
-      { day: 1, title: "Departure & Safety Briefing", description: "Board at 6:00 AM, meet the crew, safety orientation" },
-      { day: 2, title: "Deep Sea Fishing", description: "Full day of fishing at prime locations" },
-      { day: 3, title: "Island Exploration", description: "Visit remote islands and snorkeling spots" },
-      { day: 4, title: "Return Journey", description: "Morning fishing, return to dock by 4:00 PM" },
-    ],
-    reviewsList: [
-      { id: 1, user: "Michael Brown", rating: 5, date: "May 2024", comment: "Absolutely incredible experience! Caught a massive Marlin and the crew was top-notch.", avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
-      { id: 2, user: "Sarah Johnson", rating: 5, date: "April 2024", comment: "Well organized, great equipment, and Captain John knows his stuff. Highly recommend!", avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
-      { id: 3, user: "David Wilson", rating: 4, date: "March 2024", comment: "Great trip overall. Weather was perfect and we caught plenty of fish.", avatar: "https://randomuser.me/api/portraits/men/3.jpg" },
-    ]
-  },
-  { 
-    id: 2,
-    title: "Keys Fly-Fishing Charter", 
-    location: "Islamorada, Florida", 
-    duration: "8 hours", 
-    crew: 4, 
-    price: 800,
-    priceDisplay: "$800",
-    images: [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&h=900&fit=crop",
-    ],
-    rating: 4.8,
-    reviews: 94,
-    featured: false,
-    water: "Atlantic Ocean",
-    boat: "Backcountry Skiff",
-    description: "Experience the thrill of fly-fishing in the pristine waters of the Florida Keys...",
-    captain: { name: "Captain Mike Johnson", experience: "12+ years", totalTrips: 189, image: "https://randomuser.me/api/portraits/men/45.jpg", bio: "" },
-    cabin: "Standard Cabin",
-    equipment: ["Fly Rods", "Tackle Boxes", "Lures", "Fishing Nets"],
-    amenities: ["Basic seating", "Cooler", "Shade cover"],
-    departureDates: ["May 18, 2024", "May 25, 2024"],
-    included: ["Fishing Guide", "Equipment", "Lunch"],
-    itinerary: [],
-    reviewsList: [
-      { id: 1, user: "Chris Evans", rating: 5, date: "April 2024", comment: "Amazing fly fishing experience!", avatar: "https://randomuser.me/api/portraits/men/5.jpg" },
-    ]
-  },
-];
+// Helper function to get image URL
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://hook.runasp.net';
+  return `${baseUrl}${url}`;
+};
 
 // ─── Animated Background ─────────────────────────────────────────────────────
 const AnimatedBackground = React.memo(() => (
@@ -116,29 +49,36 @@ const DateSelector = ({ dates, selectedDate, onSelectDate }) => {
     return {
       month: date.toLocaleString('default', { month: 'short' }),
       day: date.getDate(),
-      full: dateString
+      full: dateString,
+      availableSeats: dates.find(d => d.startDate === dateString)?.availableSeats || 0
     };
   };
 
   return (
     <div className="flex flex-wrap gap-3 mt-2">
-      {dates.map((date) => {
-        const { month, day, full } = formatDate(date);
+      {dates.map((dateObj) => {
+        const date = dateObj.startDate;
+        const { month, day, full, availableSeats } = formatDate(date);
         const isSelected = selectedDate === full;
+        const isAvailable = availableSeats > 0;
         return (
           <motion.button
             key={date}
-            onClick={() => onSelectDate(full)}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            onClick={() => isAvailable && onSelectDate(full)}
+            whileHover={isAvailable ? { scale: 1.02, y: -2 } : {}}
+            whileTap={isAvailable ? { scale: 0.98 } : {}}
+            disabled={!isAvailable}
             className={`flex flex-col items-center px-5 py-2.5 rounded-xl border transition-all duration-200 ${
-              isSelected 
-                ? "bg-sky-500/20 border-sky-400 text-sky-400 shadow-lg shadow-sky-500/20" 
-                : "bg-[#001526] border-white/5 text-[#a3cbf2] hover:border-sky-400/30 hover:text-sky-400"
+              !isAvailable 
+                ? "bg-[#001526]/50 border-white/5 text-[#a3cbf2]/30 cursor-not-allowed" 
+                : isSelected 
+                  ? "bg-sky-500/20 border-sky-400 text-sky-400 shadow-lg shadow-sky-500/20" 
+                  : "bg-[#001526] border-white/5 text-[#a3cbf2] hover:border-sky-400/30 hover:text-sky-400"
             }`}
           >
             <span className="text-xs font-bold uppercase tracking-wider">{month}</span>
             <span className="text-xl font-bold">{day}</span>
+            <span className="text-[10px] mt-1">{availableSeats} seats</span>
           </motion.button>
         );
       })}
@@ -148,18 +88,29 @@ const DateSelector = ({ dates, selectedDate, onSelectDate }) => {
 
 // ─── Review Card Component ────────────────────────────────────────────────
 const ReviewCard = ({ review }) => {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
   return (
     <div className="p-4 rounded-xl bg-[#001526] border border-white/5 transition-all hover:border-white/10">
       <div className="flex items-start gap-3">
-        <img 
-          src={review.avatar} 
-          alt={review.user} 
-          className="w-10 h-10 rounded-full object-cover border border-sky-400/30"
-        />
+        {review.userImage ? (
+          <img 
+            src={getImageUrl(review.userImage)} 
+            alt={review.userName} 
+            className="w-10 h-10 rounded-full object-cover border border-sky-400/30"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-sky-400/20 flex items-center justify-center border border-sky-400/30">
+            <UserCheck size={18} className="text-sky-400" />
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <h4 className="font-semibold text-[#cee5ff] text-sm">{review.user}</h4>
-            <span className="text-xs text-[#a3cbf2]/40">{review.date}</span>
+            <h4 className="font-semibold text-[#cee5ff] text-sm">{review.userName}</h4>
+            <span className="text-xs text-[#a3cbf2]/40">{formatDate(review.createdOn)}</span>
           </div>
           <div className="flex gap-0.5 mb-2">
             {[...Array(5)].map((_, i) => (
@@ -221,7 +172,7 @@ const ImageCarousel = React.memo(({ images, title }) => {
       <AnimatePresence mode="wait">
         <motion.img
           key={currentIndex}
-          src={images[currentIndex]}
+          src={getImageUrl(images[currentIndex].imageUrl || images[currentIndex])}
           alt={`${title} - ${currentIndex + 1}`}
           className="w-full h-full object-cover opacity-90"
           initial={{ opacity: 0, scale: 1.05 }}
@@ -233,45 +184,47 @@ const ImageCarousel = React.memo(({ images, title }) => {
       
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
       
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#002238]/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#002238]/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
-      >
-        <ChevronRight size={20} />
-      </button>
-      
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {images.map((_, idx) => (
+      {images.length > 1 && (
+        <>
           <button
-            key={idx}
-            onClick={() => goToSlide(idx)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              idx === currentIndex ? "w-8 bg-sky-400" : "w-4 bg-white/40 hover:bg-white/80"
-            }`}
-          />
-        ))}
-      </div>
-      
-      <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-[#002238]/60 backdrop-blur-sm border border-white/5 text-white text-xs z-10 font-medium">
-        {currentIndex + 1} / {images.length}
-      </div>
-      
-      {!isFullscreen && (
-        <button
-          onClick={toggleFullscreen}
-          className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[#002238]/50 border border-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
-        >
-          <Maximize2 size={16} />
-        </button>
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#002238]/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#002238]/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
+          >
+            <ChevronRight size={20} />
+          </button>
+          
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => goToSlide(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentIndex ? "w-8 bg-sky-400" : "w-4 bg-white/40 hover:bg-white/80"
+                }`}
+              />
+            ))}
+          </div>
+          
+          <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-[#002238]/60 backdrop-blur-sm border border-white/5 text-white text-xs z-10 font-medium">
+            {currentIndex + 1} / {images.length}
+          </div>
+        </>
       )}
+      
+      <button
+        onClick={toggleFullscreen}
+        className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-[#002238]/50 border border-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-sky-500 hover:border-sky-400 transition-all duration-300 z-10"
+      >
+        <Maximize2 size={16} />
+      </button>
     </div>
-  ), [currentIndex, images, title, prevSlide, nextSlide, goToSlide, toggleFullscreen, isFullscreen]);
+  ), [currentIndex, images, title, prevSlide, nextSlide, goToSlide, toggleFullscreen]);
 
   if (isFullscreen) {
     return (
@@ -365,30 +318,81 @@ const TripDetailsPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState(0);
 
+  // Fetch trip details
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useEffect(() => {
-    const foundTrip = tripsData.find(t => t.id === parseInt(id));
-    if (foundTrip) {
-      setTrip(foundTrip);
-      if (foundTrip.departureDates && foundTrip.departureDates.length > 0) {
-        setSelectedDate(foundTrip.departureDates[0]);
+    const fetchTripDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.get(`/api/Trips/allroles/${id}`);
+        const tripData = response.data;
+        setTrip(tripData);
+        
+        if (tripData.tripDates && tripData.tripDates.length > 0) {
+          const activeDate = tripData.tripDates.find(date => date.isActive && date.availableSeats > 0);
+          if (activeDate) {
+            setSelectedDate(activeDate.startDate);
+          } else if (tripData.tripDates.length > 0) {
+            setSelectedDate(tripData.tripDates[0].startDate);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching trip details:", error);
+        toast.error("Failed to load trip details");
+      } finally {
+        setLoading(false);
       }
+    };
+
+    if (id) {
+      fetchTripDetails();
     }
-    setLoading(false);
+  }, [id]);
+
+  // Fetch reviews only (NO add review functionality)
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!id) return;
+      setReviewsLoading(true);
+      try {
+        const response = await apiClient.get(`/api/Reviews/allroles/trip/${id}`);
+        const reviewsData = response.data;
+        setReviews(reviewsData);
+        
+        if (reviewsData.length > 0) {
+          const avg = reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewsData.length;
+          setAverageRating(avg);
+        } else {
+          setAverageRating(0);
+        }
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
   }, [id]);
 
   const handleBookNow = useCallback(() => {
+    if (!selectedDate) {
+      toast.error("Please select a date");
+      return;
+    }
+    const selectedDateObj = trip?.tripDates?.find(d => d.startDate === selectedDate);
     navigate(`/trip/${trip.id}/book`, {
       state: {
         trip,
         selectedDate,
+        selectedDateId: selectedDateObj?.id,
         quantity,
-        totalPrice: trip.price * quantity
+        totalPrice: trip.pricePerPerson * quantity,
+        availableSeats: selectedDateObj?.availableSeats
       }
     });
   }, [navigate, trip, selectedDate, quantity]);
@@ -408,9 +412,17 @@ const TripDetailsPage = () => {
     setShowShareMenu(false);
   }, []);
 
+  const getSelectedDateAvailableSeats = useMemo(() => {
+    if (!selectedDate || !trip?.tripDates) return 0;
+    const dateObj = trip.tripDates.find(d => d.startDate === selectedDate);
+    return dateObj?.availableSeats || 0;
+  }, [selectedDate, trip]);
+
+  const maxQuantity = Math.min(trip?.maxParticipants || 1, getSelectedDateAvailableSeats || 1);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#001526]">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-sky-400/30 border-t-sky-400 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[#a3cbf2]/60">Loading adventure...</p>
@@ -421,7 +433,7 @@ const TripDetailsPage = () => {
 
   if (!trip) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#001526]">
         <div className="text-center">
           <Compass size={64} className="mx-auto text-white/10 mb-4" />
           <p className="text-[#a3cbf2]/60 text-lg">Trip not found</p>
@@ -436,8 +448,15 @@ const TripDetailsPage = () => {
     );
   }
 
+  const activeTripDates = trip.tripDates?.filter(date => date.isActive && date.availableSeats > 0) || [];
+  const mainImage = trip.mainImageUrl || trip.images?.find(img => img.isMainImage)?.imageUrl || trip.images?.[0]?.imageUrl;
+  
+  const carouselImages = trip.images?.length > 0 
+    ? trip.images 
+    : mainImage ? [{ imageUrl: mainImage, isMainImage: true }] : [];
+
   return (
-    <div className="space-y-6 pb-20 relative">
+    <div className="space-y-6 pb-20 relative min-h-screen bg-[#001526]">
       <AnimatedBackground />
       
       <motion.div
@@ -445,7 +464,13 @@ const TripDetailsPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <ImageCarousel images={trip.images} title={trip.title} />
+        {carouselImages.length > 0 ? (
+          <ImageCarousel images={carouselImages} title={trip.title} />
+        ) : (
+          <div className="h-[60vh] bg-gradient-to-br from-sky-500/20 to-cyan-500/20 flex items-center justify-center">
+            <Ship size={80} className="text-sky-400/40" />
+          </div>
+        )}
       </motion.div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-8">
@@ -457,27 +482,26 @@ const TripDetailsPage = () => {
         >
           <div className="flex flex-wrap justify-between items-start gap-4">
             <div className="flex-1">
-              {/* Trip Title */}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#cee5ff] mb-4">{trip.title}</h1>
               
-              {/* Location and Rating */}
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[#a3cbf2] text-sm mb-6">
                 <span className="flex items-center gap-1.5">
                   <MapPin size={16} className="text-sky-400" />
-                  {trip.location}
+                  {trip.locationName}
                 </span>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} className={i < Math.floor(trip.rating) ? "text-amber-400 fill-amber-400" : "text-white/20"} />
-                    ))}
+                {averageRating > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={14} className={i < Math.floor(averageRating) ? "text-amber-400 fill-amber-400" : "text-white/20"} />
+                      ))}
+                    </div>
+                    <span className="text-[#cee5ff] font-medium">{averageRating.toFixed(1)}</span>
+                    <span className="text-[#a3cbf2]/60">({reviews.length} reviews)</span>
                   </div>
-                  <span className="text-[#cee5ff] font-medium">{trip.rating}</span>
-                  <span className="text-[#a3cbf2]/60">({trip.reviews} reviews)</span>
-                </div>
+                )}
               </div>
 
-              {/* Stats Row - Duration, Seats, etc */}
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#001526] border border-white/5">
                   <div className="p-1.5 rounded-lg bg-sky-400/10">
@@ -485,7 +509,11 @@ const TripDetailsPage = () => {
                   </div>
                   <div>
                     <p className="text-[#a3cbf2]/60 text-xs">Duration</p>
-                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.duration}</p>
+                    <p className="text-[#cee5ff] font-semibold text-sm">
+                      {trip.tripDates?.[0] ? 
+                        `${Math.ceil((new Date(trip.tripDates[0].endDate) - new Date(trip.tripDates[0].startDate)) / (1000 * 60 * 60))} hours` 
+                        : 'N/A'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#001526] border border-white/5">
@@ -493,7 +521,8 @@ const TripDetailsPage = () => {
                     <Users size={16} className="text-sky-400" />
                   </div>
                   <div>
-                     <p className="text-[#cee5ff] font-semibold text-sm">Up to {trip.crew} seats</p>
+                    <p className="text-[#a3cbf2]/60 text-xs">Max Capacity</p>
+                    <p className="text-[#cee5ff] font-semibold text-sm">Up to {trip.maxParticipants}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#001526] border border-white/5">
@@ -502,7 +531,7 @@ const TripDetailsPage = () => {
                   </div>
                   <div>
                     <p className="text-[#a3cbf2]/60 text-xs">Vessel</p>
-                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boat}</p>
+                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boatName}</p>
                   </div>
                 </div>
               </div>
@@ -538,58 +567,108 @@ const TripDetailsPage = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* About This Trip */}
             <InfoCard title="About This Trip" icon={Info}>
-              <p className="text-[#a3cbf2]/80 leading-relaxed">{trip.description}</p>
+              <p className="text-[#a3cbf2]/80 leading-relaxed whitespace-pre-line">
+                {trip.detailedDescription || trip.shortDescription || "No description available."}
+              </p>
+              <div className="flex flex-wrap gap-3 mt-4">
+                {trip.isGuided && (
+                  <span className="text-xs px-3 py-1.5 rounded-full bg-sky-400/10 text-sky-400 border border-sky-400/20">
+                    Guided Tour
+                  </span>
+                )}
+                {trip.hasEquipmentRental && (
+                  <span className="text-xs px-3 py-1.5 rounded-full bg-sky-400/10 text-sky-400 border border-sky-400/20">
+                    Equipment Included
+                  </span>
+                )}
+                {trip.hasSnorkeling && (
+                  <span className="text-xs px-3 py-1.5 rounded-full bg-sky-400/10 text-sky-400 border border-sky-400/20">
+                    Snorkeling Available
+                  </span>
+                )}
+              </div>
             </InfoCard>
             
-            {/* Captain Info */}
-            <InfoCard title="About Your Captain" icon={Navigation}>
-              <div className="flex items-center gap-4">
-                <img src={trip.captain.image} alt={trip.captain.name} className="w-16 h-16 rounded-full object-cover border-2 border-sky-400" />
-                <div>
-                  <h4 className="font-semibold text-[#cee5ff] text-lg">{trip.captain.name}</h4>
-                  <div className="flex flex-wrap gap-4 mt-1">
-                    <p className="text-sm text-sky-400 font-medium">{trip.captain.experience} experience</p>
-                    <p className="text-sm text-[#a3cbf2]/60 flex items-center gap-1">
-                      <Ship size={12} /> {trip.captain.totalTrips || 250}+ trips completed
+            {/* Boat Info */}
+            {trip.boat && (
+              <InfoCard title="About the Boat" icon={Anchor}>
+                <div className="flex items-start gap-4">
+                  {trip.boat.mainImageUrl && (
+                    <img 
+                      src={getImageUrl(trip.boat.mainImageUrl)}
+                      alt={trip.boat.name}
+                      className="w-24 h-24 rounded-xl object-cover border border-sky-400/30"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[#cee5ff] text-lg">{trip.boat.name}</h4>
+                    <p className="text-[#a3cbf2]/70 text-sm mt-1">{trip.boat.description}</p>
+                    <p className="text-sm text-[#a3cbf2]/60 mt-2 flex items-center gap-1">
+                      <Users size={12} /> Capacity: {trip.boat.capacity} people
                     </p>
                   </div>
-                  {trip.captain.bio && (
-                    <p className="text-xs text-[#a3cbf2]/60 mt-2">{trip.captain.bio}</p>
-                  )}
                 </div>
-              </div>
-            </InfoCard>
+              </InfoCard>
+            )}
             
-            {/* Equipment Included - Icon with bg, no checkmark */}
-            <InfoCard title="Equipment Included" icon={Fish}>
-              <div className="grid grid-cols-2 gap-3">
-                {trip.equipment.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm p-2.5 rounded-xl bg-[#001526] border border-white/5">
-                    <div className="p-1 rounded-lg bg-sky-400/10">
-                      <Fish size={14} className="text-sky-400" />
-                    </div>
-                    <span className="text-[#cee5ff]">{item}</span>
+            {/* Trip Manager / Captain Info */}
+            {trip.tripManagerName && (
+              <InfoCard title="Trip Manager" icon={Navigation}>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-sky-400/20 flex items-center justify-center border border-sky-400/30">
+                    <UserCheck size={28} className="text-sky-400" />
                   </div>
-                ))}
-              </div>
-            </InfoCard>
+                  <div>
+                    <h4 className="font-semibold text-[#cee5ff] text-lg">{trip.tripManagerName}</h4>
+                    <p className="text-sm text-[#a3cbf2]/60">Your dedicated trip manager</p>
+                  </div>
+                </div>
+              </InfoCard>
+            )}
             
             {/* Select Date */}
-            <InfoCard title="Select Date" icon={Calendar}>
-              <DateSelector 
-                dates={trip.departureDates}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-              />
-            </InfoCard>
+            {activeTripDates.length > 0 && (
+              <InfoCard title="Select Date" icon={Calendar}>
+                <DateSelector 
+                  dates={activeTripDates}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                />
+                <p className="text-xs text-[#a3cbf2]/40 mt-3">
+                  * Select a date to check availability
+                </p>
+              </InfoCard>
+            )}
             
-            {/* Reviews Section */}
-            <InfoCard title={`Reviews (${trip.reviews})`} icon={Star}>
-              <div className="space-y-4">
-                {trip.reviewsList && trip.reviewsList.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
+            {/* Reviews Section - Display ONLY, NO Add Review */}
+            <InfoCard title={`Reviews (${reviews.length})`} icon={Star}>
+              {reviewsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2].map(i => (
+                    <div key={i} className="p-4 rounded-xl bg-[#001526] border border-white/5 animate-pulse">
+                      <div className="flex gap-3">
+                        <div className="w-10 h-10 rounded-full bg-sky-400/10" />
+                        <div className="flex-1">
+                          <div className="h-4 w-32 bg-sky-400/10 rounded mb-2" />
+                          <div className="h-3 w-full bg-sky-400/10 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Star size={32} className="mx-auto text-white/10 mb-2" />
+                  <p className="text-[#a3cbf2]/60">No reviews yet</p>
+                  <p className="text-xs text-[#a3cbf2]/40 mt-1">Be the first to share your experience!</p>
+                </div>
+              )}
             </InfoCard>
           </div>
           
@@ -601,49 +680,73 @@ const TripDetailsPage = () => {
           >
             <div className="bg-[#002238] border border-sky-400/20 rounded-2xl p-6 shadow-2xl">
               <div className="text-center mb-6 pb-4 border-b border-white/5">
-                <div className="text-3xl font-black text-sky-400">{trip.priceDisplay}</div>
+                <div className="text-3xl font-black text-sky-400">${trip.pricePerPerson}</div>
                 <div className="text-xs text-[#a3cbf2]/40 uppercase tracking-wider mt-1">per person</div>
               </div>
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
                   <span className="text-sm text-[#a3cbf2]/60">Selected Date</span>
-                  <span className="text-sm text-[#cee5ff] font-medium">{selectedDate}</span>
+                  <span className="text-sm text-[#cee5ff] font-medium">
+                    {selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    }) : 'Select a date'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
                   <span className="text-sm text-[#a3cbf2]/60">Number of Guests</span>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center"
+                      disabled={quantity <= 1}
+                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       -
                     </button>
                     <span className="text-[#cee5ff] font-bold text-base w-6 text-center">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(Math.min(trip.crew, quantity + 1))}
-                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center"
+                      onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+                      disabled={quantity >= maxQuantity}
+                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       +
                     </button>
                   </div>
                 </div>
+                {selectedDate && getSelectedDateAvailableSeats < trip.maxParticipants && (
+                  <p className="text-xs text-amber-400/70 text-center">
+                    Only {getSelectedDateAvailableSeats} seats available for this date
+                  </p>
+                )}
               </div>
               
               <div className="text-center mb-6 bg-sky-400/5 p-4 rounded-xl border border-sky-400/20">
                 <div className="text-xs text-[#a3cbf2]/60 uppercase tracking-wider mb-1">Total for {quantity} {quantity === 1 ? 'guest' : 'guests'}</div>
-                <div className="text-3xl font-black text-sky-400">${trip.price * quantity}</div>
+                <div className="text-3xl font-black text-sky-400">${trip.pricePerPerson * quantity}</div>
               </div>
               
               <motion.button
                 onClick={handleBookNow}
-                className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-gradient-to-r from-sky-500 to-cyan-600 text-white shadow-[0_0_20px_rgba(83,214,251,0.2)] flex items-center justify-center gap-2"
-                whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(83,214,251,0.4)" }}
-                whileTap={{ scale: 0.98 }}
+                disabled={!selectedDate || getSelectedDateAvailableSeats === 0}
+                className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+                  !selectedDate || getSelectedDateAvailableSeats === 0
+                    ? "bg-gray-600/30 text-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-sky-500 to-cyan-600 text-white shadow-[0_0_20px_rgba(83,214,251,0.2)] hover:shadow-[0_0_30px_rgba(83,214,251,0.4)]"
+                }`}
+                whileHover={selectedDate && getSelectedDateAvailableSeats > 0 ? { scale: 1.02 } : {}}
+                whileTap={selectedDate && getSelectedDateAvailableSeats > 0 ? { scale: 0.98 } : {}}
               >
                 <span>Book Now</span>
                 <ChevronRight size={16} />
               </motion.button>
+              
+              {!selectedDate && (
+                <p className="text-xs text-amber-400/70 text-center mt-3">
+                  Please select a date to book
+                </p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -653,4 +756,3 @@ const TripDetailsPage = () => {
 };
 
 export default TripDetailsPage;
- 

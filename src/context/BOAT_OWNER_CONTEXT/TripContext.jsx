@@ -200,7 +200,6 @@ export const TripProvider = ({ children }) => {
         }
     }, [isBoatOwner, convertBase64ToFile, fetchTrips]);
 
-    // ─── ADD NEW TRIP DATES FUNCTION ─────────────────────────────────────────
     const addNewTripDates = useCallback(async (id, datesArray) => {
         try {
             const payload = {
@@ -210,10 +209,24 @@ export const TripProvider = ({ children }) => {
                 }))
             };
             await tripService.addTripDates(id, payload);
-            await fetchTrips(); // تحديث الداتا في الخلفية عشان تظهر التواريخ الجديدة في باقي الـ components
+            await fetchTrips();
             return true;
         } catch (err) {
             console.error("Add dates error:", err);
+            throw err;
+        }
+    }, [fetchTrips]);
+
+    // ─── TOGGLE DATE STATUS FUNCTION ─────────────────────────────────────────
+    const toggleDateStatus = useCallback(async (dateId, isActive) => {
+        try {
+            await tripService.toggleDateStatus(dateId, isActive);
+            await fetchTrips(); // Refresh trips to get updated status
+            toast.success(`Date ${isActive ? 'activated' : 'deactivated'} successfully`);
+            return true;
+        } catch (err) {
+            console.error("Toggle date status error:", err);
+            toast.error(err.response?.data?.title || err.response?.data?.message || "Failed to update date status");
             throw err;
         }
     }, [fetchTrips]);
@@ -286,12 +299,13 @@ export const TripProvider = ({ children }) => {
         getTrip,
         createTrip,
         updateTrip,
-        addNewTripDates, // ✅ تمت الإضافة هنا
+        addNewTripDates,
+        toggleDateStatus, 
         deleteTrip
     }), [
         paginatedTrips, trips, loading, authLoading, error, searchTerm, 
         currentPage, totalPages, isBoatOwner, fetchTrips, getTrip, 
-        createTrip, updateTrip, addNewTripDates, deleteTrip // ✅ تمت الإضافة في مصفوفة الاعتماديات (Dependencies)
+        createTrip, updateTrip, addNewTripDates, toggleDateStatus, deleteTrip
     ]);
 
     return (
