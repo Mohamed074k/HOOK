@@ -1,4 +1,3 @@
-// src/context/BOAT_OWNER_CONTEXT/TripContext.js
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as tripService from "../../services/BoatOwnerService.jsx/trips.service";
 import { toast } from 'react-hot-toast';
@@ -226,8 +225,44 @@ export const TripProvider = ({ children }) => {
             return true;
         } catch (err) {
             console.error("Toggle date status error:", err);
-            toast.error(err.response?.data?.title || err.response?.data?.message || "Failed to update date status");
+            const responseData = err.response?.data;
+            
+            // Check if backend prevents modification due to unrefunded payments
+            const isUnrefundedError = responseData?.code === "Trip.DateHasUnrefundedBookings" || 
+                                     (responseData?.description || "").toLowerCase().includes("refund");
+
+            if (isUnrefundedError) {
+                toast.error("Cannot deactivate date. You must refund all payments first.");
+            } else {
+                toast.error(responseData?.title || responseData?.message || "Failed to update date status");
+            }
             throw err;
+        }
+    }, [fetchTrips]);
+
+// ─── HARD DELETE DATE FUNCTION ───────────────────────────────────────────
+    const deleteTripDate = useCallback(async (dateId) => {
+        try {
+            await tripService.hardDeleteTripDate(dateId);
+            await fetchTrips(); // Refresh trips to sync the deletion
+            toast.success('Date deleted permanently');
+            return true;
+        } catch (err) {
+            console.error("Delete date error:", err);
+            
+            const responseData = err.response?.data;
+            const status = err.response?.status;
+            
+            // Only show generic toast if it's NOT the specific refund errors we handle in the Modal Component
+            const isUnrefundedError = responseData?.code === "Trip.DateHasUnrefundedBookings" || 
+                                     (responseData?.description || "").toLowerCase().includes("refund");
+            const isServerDependencyError = status === 500;
+
+            if (!isUnrefundedError && !isServerDependencyError) {
+                toast.error(responseData?.title || responseData?.message || "Failed to delete date");
+            }
+            
+            throw err; // Re-throw to be caught by the component
         }
     }, [fetchTrips]);
 
@@ -301,11 +336,12 @@ export const TripProvider = ({ children }) => {
         updateTrip,
         addNewTripDates,
         toggleDateStatus, 
+        deleteTripDate,
         deleteTrip
     }), [
         paginatedTrips, trips, loading, authLoading, error, searchTerm, 
         currentPage, totalPages, isBoatOwner, fetchTrips, getTrip, 
-        createTrip, updateTrip, addNewTripDates, toggleDateStatus, deleteTrip
+        createTrip, updateTrip, addNewTripDates, toggleDateStatus, deleteTripDate, deleteTrip
     ]);
 
     return (

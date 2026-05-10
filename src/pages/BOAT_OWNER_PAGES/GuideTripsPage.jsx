@@ -5,6 +5,7 @@ import { useTrips } from "../../context/BOAT_OWNER_CONTEXT/TripContext";
 import TripWizard from "../../components/BOAT_OWNER_COMPONENTS/TripWizard";
 import TripDetails from "../../components/BOAT_OWNER_COMPONENTS/TripDetails";
 import TripReviews from "../../components/BOAT_OWNER_COMPONENTS/TripReviews";
+
 const optionIcons = {
   guidedTrip: { icon: Compass, label: "Guided" },
   equipmentRental: { icon: Compass, label: "Equipment" },

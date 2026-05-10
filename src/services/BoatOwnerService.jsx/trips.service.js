@@ -1,4 +1,3 @@
-// src/services/BoatOwnerService/trips.service.js
 import apiClient from "../../api/apiClient";
 
 // ─── Get All Trips for Current Boat Owner ───────────────────────────────────
@@ -52,6 +51,12 @@ export const addTripDates = async (id, datesData) => {
 // ─── Toggle Date Status ───────────────────────────────────
 export const toggleDateStatus = async (dateId, isActive) => {
   const { data } = await apiClient.patch(`/api/Trips/boatowner/toggle-date-status/${dateId}?isActive=${isActive}`);
+  return data;
+};
+
+// ─── Hard Delete Date ───────────────────────────────────────────────────────
+export const hardDeleteTripDate = async (dateId) => {
+  const { data } = await apiClient.delete(`/api/Trips/boatowner/Hard-delete-date/${dateId}`);
   return data;
 };
 

@@ -11,8 +11,7 @@ const navItems = [
   { to: "/boat-owner/trips", label: "My Trips", icon: Ship, end: false },
   { to: "/boat-owner/boats", label: "Boats", icon: Sailboat, end: false },
   { to: "/boat-owner/bookings", label: "Bookings", icon: Users, end: false },
-  { to: "/boat-owner/reviews", label: "Reviews", icon: Star, end: false },
-  { to: "/boat-owner/settings", label: "My Profile", icon: UserCircle, end: false },
+   { to: "/boat-owner/settings", label: "My Profile", icon: UserCircle, end: false },
 ];
 
 const GuideSidebar = ({ onClose }) => {

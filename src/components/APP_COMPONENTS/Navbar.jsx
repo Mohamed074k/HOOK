@@ -1,5 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
-import { Anchor, Search, ShoppingCart, Menu, X, User, LayoutDashboard, Trash2 } from "lucide-react";
+import { Anchor, ShoppingCart, Menu, X, User, LayoutDashboard, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
@@ -29,7 +29,6 @@ const getDashboardLink = (role) => {
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
@@ -193,7 +192,6 @@ const Navbar = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-5">
-            {/* Search */}
             <motion.div
               variants={itemVariants}
               initial="initial"
@@ -202,28 +200,8 @@ const Navbar = () => {
               whileTap={{ scale: 0.9 }}
               className="relative"
             >
-              <Search 
-                className="text-[#a3cbf2]/60 hover:text-sky-100 cursor-pointer transition-colors" 
-                size={20}
-                onClick={() => setSearchOpen(!searchOpen)}
-              />
-              <AnimatePresence>
-                {searchOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-2 w-80"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Search trips, products..."
-                      className="w-full bg-[#002238] border border-sky-400/30 rounded-xl px-4 py-2 text-sm text-[#cee5ff] placeholder:text-[#a3cbf2]/40 focus:outline-none focus:border-sky-400 shadow-xl"
-                      autoFocus
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+           
+   
             </motion.div>
 
             {/* Shopping Cart - Only for regular users */}

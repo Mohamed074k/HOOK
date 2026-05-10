@@ -75,11 +75,7 @@ const StepConfirmation = ({ trip, quantity, selectedDate, totalPrice, formData, 
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#001526] border border-white/5">
-              <p className="text-xs text-[#a3cbf2]/60 mb-2">Booked by</p>
-              <p className="text-[#cee5ff] font-medium">{formData.fullName}</p>
-              <p className="text-[#a3cbf2]/60 text-xs mt-1">{formData.email} • {formData.phone}</p>
-            </div>
+  
           </div>
         </div>
 

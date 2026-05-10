@@ -53,8 +53,7 @@ import GuideDashboard from "./pages/BOAT_OWNER_PAGES/GuideDashboard";
 import GuideTripsPage from "./pages/BOAT_OWNER_PAGES/GuideTripsPage";
 import GuideBoatsPage from "./pages/BOAT_OWNER_PAGES/GuideBoatsPage";
 import GuideBookingsPage from "./pages/BOAT_OWNER_PAGES/GuideBookingsPage";
-import GuideReviewsPage from "./pages/BOAT_OWNER_PAGES/GuideReviewsPage";
-import GuideSettingsPage from "./pages/BOAT_OWNER_PAGES/GuideSettingsPage";
+ import GuideSettingsPage from "./pages/BOAT_OWNER_PAGES/GuideSettingsPage";
 
 // ─── Router Config ────────────────────────────────────────────────────────────
 const router = createBrowserRouter([
@@ -143,8 +142,7 @@ const router = createBrowserRouter([
       { path: "trips/add",   element: <GuideTripsPage /> },
       { path: "boats",       element: <GuideBoatsPage /> },
       { path: "bookings",    element: <GuideBookingsPage /> },
-      { path: "reviews",     element: <GuideReviewsPage /> },
-      { path: "settings",    element: <GuideSettingsPage /> },
+       { path: "settings",    element: <GuideSettingsPage /> },
     ],
   },
 

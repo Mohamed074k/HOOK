@@ -42,50 +42,6 @@ const AnimatedBackground = React.memo(() => (
   </div>
 ));
 
-// ─── Custom Date Selector Component ───────────────────────────────────────
-const DateSelector = ({ dates, selectedDate, onSelectDate }) => {
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return {
-      month: date.toLocaleString('default', { month: 'short' }),
-      day: date.getDate(),
-      full: dateString,
-      availableSeats: dates.find(d => d.startDate === dateString)?.availableSeats || 0
-    };
-  };
-
-  return (
-    <div className="flex flex-wrap gap-3 mt-2">
-      {dates.map((dateObj) => {
-        const date = dateObj.startDate;
-        const { month, day, full, availableSeats } = formatDate(date);
-        const isSelected = selectedDate === full;
-        const isAvailable = availableSeats > 0;
-        return (
-          <motion.button
-            key={date}
-            onClick={() => isAvailable && onSelectDate(full)}
-            whileHover={isAvailable ? { scale: 1.02, y: -2 } : {}}
-            whileTap={isAvailable ? { scale: 0.98 } : {}}
-            disabled={!isAvailable}
-            className={`flex flex-col items-center px-5 py-2.5 rounded-xl border transition-all duration-200 ${
-              !isAvailable 
-                ? "bg-[#001526]/50 border-white/5 text-[#a3cbf2]/30 cursor-not-allowed" 
-                : isSelected 
-                  ? "bg-sky-500/20 border-sky-400 text-sky-400 shadow-lg shadow-sky-500/20" 
-                  : "bg-[#001526] border-white/5 text-[#a3cbf2] hover:border-sky-400/30 hover:text-sky-400"
-            }`}
-          >
-            <span className="text-xs font-bold uppercase tracking-wider">{month}</span>
-            <span className="text-xl font-bold">{day}</span>
-            <span className="text-[10px] mt-1">{availableSeats} seats</span>
-          </motion.button>
-        );
-      })}
-    </div>
-  );
-};
-
 // ─── Review Card Component ────────────────────────────────────────────────
 const ReviewCard = ({ review }) => {
   const formatDate = (dateString) => {
@@ -315,10 +271,8 @@ const TripDetailsPage = () => {
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
@@ -329,17 +283,7 @@ const TripDetailsPage = () => {
       setLoading(true);
       try {
         const response = await apiClient.get(`/api/Trips/allroles/${id}`);
-        const tripData = response.data;
-        setTrip(tripData);
-        
-        if (tripData.tripDates && tripData.tripDates.length > 0) {
-          const activeDate = tripData.tripDates.find(date => date.isActive && date.availableSeats > 0);
-          if (activeDate) {
-            setSelectedDate(activeDate.startDate);
-          } else if (tripData.tripDates.length > 0) {
-            setSelectedDate(tripData.tripDates[0].startDate);
-          }
-        }
+        setTrip(response.data);
       } catch (error) {
         console.error("Error fetching trip details:", error);
         toast.error("Failed to load trip details");
@@ -380,22 +324,12 @@ const TripDetailsPage = () => {
   }, [id]);
 
   const handleBookNow = useCallback(() => {
-    if (!selectedDate) {
-      toast.error("Please select a date");
-      return;
-    }
-    const selectedDateObj = trip?.tripDates?.find(d => d.startDate === selectedDate);
+    // Navigate to the booking page passing the trip details.
+    // Date and Passenger selection is now fully handled inside the booking page.
     navigate(`/trip/${trip.id}/book`, {
-      state: {
-        trip,
-        selectedDate,
-        selectedDateId: selectedDateObj?.id,
-        quantity,
-        totalPrice: trip.pricePerPerson * quantity,
-        availableSeats: selectedDateObj?.availableSeats
-      }
+      state: { trip }
     });
-  }, [navigate, trip, selectedDate, quantity]);
+  }, [navigate, trip]);
 
   const handleLike = useCallback(() => {
     setIsLiked(prev => !prev);
@@ -411,14 +345,6 @@ const TripDetailsPage = () => {
   const closeShareMenu = useCallback(() => {
     setShowShareMenu(false);
   }, []);
-
-  const getSelectedDateAvailableSeats = useMemo(() => {
-    if (!selectedDate || !trip?.tripDates) return 0;
-    const dateObj = trip.tripDates.find(d => d.startDate === selectedDate);
-    return dateObj?.availableSeats || 0;
-  }, [selectedDate, trip]);
-
-  const maxQuantity = Math.min(trip?.maxParticipants || 1, getSelectedDateAvailableSeats || 1);
 
   if (loading) {
     return (
@@ -530,8 +456,8 @@ const TripDetailsPage = () => {
                     <Ship size={16} className="text-sky-400" />
                   </div>
                   <div>
-                    <p className="text-[#a3cbf2]/60 text-xs">Vessel</p>
-                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boatName}</p>
+                    <p className="text-[#a3cbf2]/60 text-xs">Boat</p>
+                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boatName || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -615,28 +541,33 @@ const TripDetailsPage = () => {
             {trip.tripManagerName && (
               <InfoCard title="Trip Manager" icon={Navigation}>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-sky-400/20 flex items-center justify-center border border-sky-400/30">
-                    <UserCheck size={28} className="text-sky-400" />
-                  </div>
+                  {trip.tripManagerImageUrl ? (
+                    <img 
+                      src={getImageUrl(trip.tripManagerImageUrl)}
+                      alt={trip.tripManagerName}
+                      className="w-16 h-16 rounded-full object-cover border-2 border-sky-400/30"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `
+                          <div class="w-16 h-16 rounded-full bg-sky-400/20 flex items-center justify-center border border-sky-400/30">
+                            <svg class="w-7 h-7 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        `;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-sky-400/20 flex items-center justify-center border border-sky-400/30">
+                      <UserCheck size={28} className="text-sky-400" />
+                    </div>
+                  )}
                   <div>
                     <h4 className="font-semibold text-[#cee5ff] text-lg">{trip.tripManagerName}</h4>
                     <p className="text-sm text-[#a3cbf2]/60">Your dedicated trip manager</p>
                   </div>
                 </div>
-              </InfoCard>
-            )}
-            
-            {/* Select Date */}
-            {activeTripDates.length > 0 && (
-              <InfoCard title="Select Date" icon={Calendar}>
-                <DateSelector 
-                  dates={activeTripDates}
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                />
-                <p className="text-xs text-[#a3cbf2]/40 mt-3">
-                  * Select a date to check availability
-                </p>
               </InfoCard>
             )}
             
@@ -684,69 +615,60 @@ const TripDetailsPage = () => {
                 <div className="text-xs text-[#a3cbf2]/40 uppercase tracking-wider mt-1">per person</div>
               </div>
               
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-8">
                 <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
-                  <span className="text-sm text-[#a3cbf2]/60">Selected Date</span>
+                  <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
+                    <Users size={16} className="text-sky-400" /> Max Capacity
+                  </span>
                   <span className="text-sm text-[#cee5ff] font-medium">
-                    {selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    }) : 'Select a date'}
+                    Up to {trip.maxParticipants}
                   </span>
                 </div>
+
                 <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
-                  <span className="text-sm text-[#a3cbf2]/60">Number of Guests</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      -
-                    </button>
-                    <span className="text-[#cee5ff] font-bold text-base w-6 text-center">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-                      disabled={quantity >= maxQuantity}
-                      className="w-7 h-7 rounded-lg bg-sky-400/10 text-sky-400 hover:bg-sky-400/20 transition-all flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      +
-                    </button>
-                  </div>
+                  <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
+                    <ClockIcon size={16} className="text-sky-400" /> Duration
+                  </span>
+                  <span className="text-sm text-[#cee5ff] font-medium">
+                    {trip.tripDates?.[0] ? 
+                      `${Math.ceil((new Date(trip.tripDates[0].endDate) - new Date(trip.tripDates[0].startDate)) / (1000 * 60 * 60))} hours` 
+                      : 'N/A'}
+                  </span>
                 </div>
-                {selectedDate && getSelectedDateAvailableSeats < trip.maxParticipants && (
-                  <p className="text-xs text-amber-400/70 text-center">
-                    Only {getSelectedDateAvailableSeats} seats available for this date
-                  </p>
-                )}
-              </div>
-              
-              <div className="text-center mb-6 bg-sky-400/5 p-4 rounded-xl border border-sky-400/20">
-                <div className="text-xs text-[#a3cbf2]/60 uppercase tracking-wider mb-1">Total for {quantity} {quantity === 1 ? 'guest' : 'guests'}</div>
-                <div className="text-3xl font-black text-sky-400">${trip.pricePerPerson * quantity}</div>
+
+                <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
+                  <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
+                    <Ship size={16} className="text-sky-400" /> Boat
+                  </span>
+                  <span className="text-sm text-[#cee5ff] font-medium truncate max-w-[140px]" title={trip.boatName || 'N/A'}>
+                    {trip.boatName || 'N/A'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
+                  <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
+                    <MapPin size={16} className="text-sky-400" /> Location
+                  </span>
+                  <span className="text-sm text-[#cee5ff] font-medium text-right truncate max-w-[140px]" title={trip.locationName}>
+                    {trip.locationName}
+                  </span>
+                </div>
               </div>
               
               <motion.button
                 onClick={handleBookNow}
-                disabled={!selectedDate || getSelectedDateAvailableSeats === 0}
+                disabled={activeTripDates.length === 0}
                 className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
-                  !selectedDate || getSelectedDateAvailableSeats === 0
+                  activeTripDates.length === 0
                     ? "bg-gray-600/30 text-gray-400 cursor-not-allowed"
                     : "bg-gradient-to-r from-sky-500 to-cyan-600 text-white shadow-[0_0_20px_rgba(83,214,251,0.2)] hover:shadow-[0_0_30px_rgba(83,214,251,0.4)]"
                 }`}
-                whileHover={selectedDate && getSelectedDateAvailableSeats > 0 ? { scale: 1.02 } : {}}
-                whileTap={selectedDate && getSelectedDateAvailableSeats > 0 ? { scale: 0.98 } : {}}
+                whileHover={activeTripDates.length > 0 ? { scale: 1.02 } : {}}
+                whileTap={activeTripDates.length > 0 ? { scale: 0.98 } : {}}
               >
-                <span>Book Now</span>
+                <span>{activeTripDates.length > 0 ? 'Book' : 'No Dates Available'}</span>
                 <ChevronRight size={16} />
               </motion.button>
-              
-              {!selectedDate && (
-                <p className="text-xs text-amber-400/70 text-center mt-3">
-                  Please select a date to book
-                </p>
-              )}
             </div>
           </motion.div>
         </div>

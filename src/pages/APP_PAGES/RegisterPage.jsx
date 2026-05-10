@@ -572,11 +572,12 @@
 // );
 
 // export default RegisterPage;
+ 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Eye, EyeOff, CheckCircle2,
-  ArrowRight, Loader2, MapPin,
+  ArrowRight, Loader2, MapPin, Phone,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -682,6 +683,14 @@ const GOVERNORATES = [
   "Damietta", "Sharkia", "South Sinai", "Kafr El Sheikh", "Matrouh",
   "Luxor", "Qena", "North Sinai", "Sohag",
 ];
+
+// ─── Phone number validation ─────────────────────────────────────────────────
+const validatePhoneNumber = (phone) => {
+  // Egyptian phone numbers: 11 digits starting with 01, or could be 10-15 digits generally
+  const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+  const egyptRegex = /^(01)[0-9]{9}$/;
+  return phoneRegex.test(phone) || egyptRegex.test(phone);
+};
 
 // ─── Animated Fishing Boat Scene ──────────────────────────────────────────────
 const FishingBoatScene = () => {
@@ -1177,7 +1186,7 @@ const RegisterPage = () => {
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "",
-    password: "", confirmPassword: "", governorate: "",
+    password: "", confirmPassword: "", governorate: "", phoneNumber: "",
   });
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -1190,22 +1199,43 @@ const RegisterPage = () => {
 
   const validate = () => {
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      toast.error("Please enter your first and last name."); return false;
+      toast.error("Please enter your first and last name."); 
+      return false;
     }
     if (!form.email.trim()) {
-      toast.error("Please enter your email address."); return false;
+      toast.error("Please enter your email address."); 
+      return false;
+    }
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      toast.error("Please enter a valid email address.");
+      return false;
     }
     if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters."); return false;
+      toast.error("Password must be at least 8 characters."); 
+      return false;
     }
     if (passwordStrength < 3) {
-      toast.error("Password is too weak. Add uppercase, numbers, or symbols."); return false;
+      toast.error("Password is too weak. Add uppercase, numbers, or symbols."); 
+      return false;
     }
     if (form.password !== form.confirmPassword) {
-      toast.error("Passwords do not match."); return false;
+      toast.error("Passwords do not match."); 
+      return false;
+    }
+    // Phone number validation
+    if (!form.phoneNumber.trim()) {
+      toast.error("Please enter your phone number.");
+      return false;
+    }
+    if (!validatePhoneNumber(form.phoneNumber)) {
+      toast.error("Please enter a valid phone number (e.g., 01234567890 or +201234567890).");
+      return false;
     }
     if (!termsAccepted) {
-      toast.error("Please accept the Terms & Conditions."); return false;
+      toast.error("Please accept the Terms & Conditions."); 
+      return false;
     }
     return true;
   };
@@ -1216,9 +1246,12 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       const data = await register({
-        email: form.email.trim(), password: form.password,
-        firstName: form.firstName.trim(), lastName: form.lastName.trim(),
+        email: form.email.trim(), 
+        password: form.password,
+        firstName: form.firstName.trim(), 
+        lastName: form.lastName.trim(),
         governorate: form.governorate || null,
+        phoneNumber: form.phoneNumber.trim(),
       });
       toast.success(data?.message || "Registration successful! Please check your email.");
       navigate("/login");
@@ -1294,6 +1327,11 @@ const RegisterPage = () => {
                 onChange={set("email")} focusedField={focusedField}
                 setFocusedField={setFocusedField} rightSlot={<Mail size={15} />} disabled={isLoading} />
 
+              {/* Phone Number Field */}
+              <FloatingField id="phoneNumber" label="Phone Number" type="tel" value={form.phoneNumber}
+                onChange={set("phoneNumber")} focusedField={focusedField}
+                setFocusedField={setFocusedField} rightSlot={<Phone size={15} />} disabled={isLoading} />
+
               {/* Governorate */}
               <motion.div className="relative w-full" variants={itemVariants}>
                 <select
@@ -1322,7 +1360,7 @@ const RegisterPage = () => {
                     color: focusedField === "governorate" ? "#53D6FB" : "#64748B",
                   }}
                   transition={{ duration: 0.22, ease }}
-                >Governorate</motion.label>
+                >Governorate (Optional)</motion.label>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <MapPin size={14} className="text-[#475569]" />
                 </div>

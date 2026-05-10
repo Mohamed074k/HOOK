@@ -30,14 +30,15 @@ export const BookingProvider = ({ children }) => {
     : [user?.role?.toLowerCase()];
   const isBoatOwner = userRoles.includes("boatowner") || userRoles.includes("admin");
   
-  // Status mapping helper (Updated to match Backend)
+  // Status mapping helper (Booking Status)
   const getStatusText = (statusCode) => {
     const statusMap = {
       1: "Pending",
       2: "Confirmed",
       3: "Cancelled",
       4: "Rejected",
-      5: "Completed"
+      5: "Completed",
+      6: "Cancel Request"
     };
     return statusMap[statusCode] || "Unknown";
   };
@@ -48,7 +49,8 @@ export const BookingProvider = ({ children }) => {
       2: "bg-sky-400/10 text-sky-400",       // Confirmed
       3: "bg-[#a3cbf2]/10 text-[#a3cbf2]/50",// Cancelled
       4: "bg-red-400/10 text-red-400",       // Rejected
-      5: "bg-teal-400/10 text-teal-400"      // Completed
+      5: "bg-teal-400/10 text-teal-400",      // Completed
+      6: "bg-purple-400/10 text-purple-400"      // Cancel Request
     };
     return styleMap[statusCode] || "bg-white/10 text-white/50";
   };
@@ -106,6 +108,65 @@ export const BookingProvider = ({ children }) => {
     } catch (err) {
       console.error("Update status error:", err);
       toast.error(err.response?.data?.message || "Failed to update booking status");
+      throw err;
+    }
+  }, [isBoatOwner, fetchStats]);
+
+  // Handle Payment Refund
+  const refundPayment = useCallback(async (bookingId, paymentId) => {
+    if (!isBoatOwner) return;
+
+    try {
+      await bookingService.refundPayment(paymentId);
+      
+      // Update the local state: Change payment status to 4 (Refunded)
+      setBookings(prev => prev.map(booking => {
+        if (booking.id === bookingId && booking.payment?.id === paymentId) {
+          return {
+            ...booking,
+            payment: { ...booking.payment, status: 4 }
+          };
+        }
+        return booking;
+      }));
+
+      toast.success("Payment refunded successfully");
+    } catch (err) {
+      console.error("Refund error:", err);
+      toast.error(err.response?.data?.message || "Failed to refund payment");
+      throw err;
+    }
+  }, [isBoatOwner]);
+
+  // Handle Payment Verification (InstaPay)
+  const verifyPayment = useCallback(async (bookingId, paymentId, isApproved, notes = "") => {
+    if (!isBoatOwner) return;
+
+    try {
+      await bookingService.verifyPayment(paymentId, isApproved, notes);
+
+      // Update local state: Change payment status to 2 (Completed) or 5 (Rejected)
+      const newPaymentStatus = isApproved ? 2 : 5;
+      
+      setBookings(prev => prev.map(booking => {
+        if (booking.id === bookingId && booking.payment?.id === paymentId) {
+          return {
+            ...booking,
+            // FIX: If payment is approved, automatically update the booking status to 2 (Confirmed)
+            status: isApproved ? 2 : booking.status,
+            payment: { ...booking.payment, status: newPaymentStatus }
+          };
+        }
+        return booking;
+      }));
+
+      // Refresh stats to immediately show the new Confirmed revenue/booking count
+      fetchStats();
+
+      toast.success(`Payment ${isApproved ? 'approved' : 'rejected'} successfully`);
+    } catch (err) {
+      console.error("Verify payment error:", err);
+      toast.error(err.response?.data?.message || "Failed to verify payment");
       throw err;
     }
   }, [isBoatOwner, fetchStats]);
@@ -171,6 +232,8 @@ export const BookingProvider = ({ children }) => {
     fetchBookings,
     fetchStats,
     updateStatus,
+    refundPayment,
+    verifyPayment, 
     getStatusText,
     getStatusStyle,
     uiTripFilter,
@@ -182,7 +245,7 @@ export const BookingProvider = ({ children }) => {
     isBoatOwner
   }), [
     filteredBookings, bookings, loading, authLoading, stats, filters,
-    updateFilters, fetchBookings, fetchStats, updateStatus,
+    updateFilters, fetchBookings, fetchStats, updateStatus, refundPayment, verifyPayment,
     uiTripFilter, uiStatusFilter, allTrips, allStatuses, isBoatOwner
   ]);
   

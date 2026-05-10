@@ -71,7 +71,7 @@ const StepPayment = ({ trip, quantity, selectedDateId, totalPrice, paymentMethod
         tripDateId: selectedDateId,
         numberOfParticipants: quantity,
         paymentMethod: paymentMethod, 
-        specialRequests: formData.specialRequests || "None"
+        specialRequests: formData.specialRequests
       };
 
       const bookingRes = await createBooking(payload);
