@@ -96,7 +96,7 @@ const getPaymentStatusText = (status) => {
 
 const getPaymentStatusStyle = (status) => {
   const styleMap = {
-    1: "bg-yellow-400/10 text-yellow-400",      // Pending
+    1: "bg-yellow-400/10 text-yellow-400",       // Pending
     2: "bg-teal-400/10 text-teal-400",          // Completed
     3: "bg-red-400/10 text-red-400",            // Failed
     4: "bg-purple-400/10 text-purple-400",      // Refunded
@@ -303,20 +303,20 @@ const BookingsManagement = () => {
   }
 
   return (
-    <div className="max-w-full space-y-6 pb-12 px-2 sm:px-0">
+    <div className="space-y-6 pb-12 w-full max-w-full overflow-x-hidden sm:overflow-visible">
       {/* Header & Filters */}
       <div className={`relative z-40 transform transition-all duration-700 ease-out ${
         animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full min-w-0">
           <div className="w-full sm:w-auto min-w-0">
             <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff] truncate">Bookings Management</h1>
             <p className="text-[#a3cbf2]/50 text-sm mt-1">{filteredBookings.length} bookings found</p>
           </div>
           
           {/* Search Bar */}
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3cbf2]/40" size={16} />
+          <div className="relative w-full sm:w-64 min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3cbf2]/40 shrink-0" size={16} />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -327,24 +327,24 @@ const BookingsManagement = () => {
         </div>
         
         {/* Filter Row */}
-        <div className="flex flex-row gap-2 sm:gap-3 mt-4 w-full">
+        <div className="flex flex-row gap-2 sm:gap-3 mt-4 w-full min-w-0">
           {/* Trip Filter */}
-          <div className={`relative group flex-1 sm:flex-none sm:w-48 ${openDropdown === 'trip' ? 'z-50' : 'z-10'}`}>
+          <div className={`relative group flex-1 sm:flex-none sm:w-48 min-w-0 ${openDropdown === 'trip' ? 'z-50' : 'z-10'}`}>
             <button
               onClick={() => setOpenDropdown(openDropdown === 'trip' ? null : 'trip')}
               onBlur={() => setTimeout(() => setOpenDropdown(null), 200)}
-              className="w-full bg-[#002238] border border-white/5 hover:border-sky-400/30 rounded-xl pl-3 pr-8 py-2 text-[#a3cbf2]/70 hover:text-[#cee5ff] text-xs sm:text-sm focus:outline-none focus:border-sky-400/50 transition-all duration-300 text-left relative z-10"
+              className="w-full bg-[#002238] border border-white/5 hover:border-sky-400/30 rounded-xl pl-3 pr-3 sm:pr-4 py-2.5 text-[#a3cbf2]/70 hover:text-[#cee5ff] text-xs sm:text-sm focus:outline-none focus:border-sky-400/50 transition-all duration-300 flex items-center justify-between shadow-sm relative z-10"
             >
-              <span className="block truncate">{tripFilter === "All" ? "All Trips" : tripFilter}</span>
-              <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3cbf2]/30 group-hover:text-sky-400 transition-all duration-300 ${openDropdown === 'trip' ? 'rotate-180 text-sky-400' : ''}`} />
+              <span className="block truncate min-w-0 flex-1 text-left mr-2">{tripFilter === "All" ? "All Trips" : tripFilter}</span>
+              <ChevronDown size={14} className={`shrink-0 text-[#a3cbf2]/30 group-hover:text-sky-400 transition-all duration-300 ${openDropdown === 'trip' ? 'rotate-180 text-sky-400' : ''}`} />
             </button>
-            <div className={`absolute top-full left-0 mt-2 min-w-full w-max max-w-[85vw] sm:max-w-xs bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 overflow-hidden origin-top transition-all duration-300 ease-out ${openDropdown === 'trip' ? 'opacity-100 scale-y-100 translate-y-0 visible' : 'opacity-0 scale-y-95 -translate-y-2 invisible'}`}>
+            <div className={`absolute top-full left-0 mt-2 w-full sm:w-48 bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 overflow-hidden origin-top transition-all duration-300 ease-out ${openDropdown === 'trip' ? 'opacity-100 scale-y-100 translate-y-0 visible' : 'opacity-0 scale-y-95 -translate-y-2 invisible'}`}>
               <div className="max-h-60 overflow-y-auto py-1">
                 {allTrips.map(trip => (
                   <button 
                     key={trip} 
                     onClick={() => { setTripFilter(trip); setOpenDropdown(null); }} 
-                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm transition-colors duration-200 ${tripFilter === trip ? 'bg-sky-500/20 text-sky-400 font-medium' : 'text-[#a3cbf2]/70 hover:bg-white/5 hover:text-[#cee5ff]'}`}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm transition-colors duration-200 truncate ${tripFilter === trip ? 'bg-sky-500/20 text-sky-400 font-medium' : 'text-[#a3cbf2]/70 hover:bg-white/5 hover:text-[#cee5ff]'}`}
                   >
                     {trip}
                   </button>
@@ -354,22 +354,22 @@ const BookingsManagement = () => {
           </div>
 
           {/* Status Filter */}
-          <div className={`relative group flex-1 sm:flex-none sm:w-36 ${openDropdown === 'status' ? 'z-50' : 'z-10'}`}>
+          <div className={`relative group flex-1 sm:flex-none sm:w-36 min-w-0 ${openDropdown === 'status' ? 'z-50' : 'z-10'}`}>
             <button
               onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')}
               onBlur={() => setTimeout(() => setOpenDropdown(null), 200)}
-              className="w-full bg-[#002238] border border-white/5 hover:border-sky-400/30 rounded-xl pl-3 pr-8 py-2 text-[#a3cbf2]/70 hover:text-[#cee5ff] text-xs sm:text-sm focus:outline-none focus:border-sky-400/50 transition-all duration-300 text-left relative z-10"
+              className="w-full bg-[#002238] border border-white/5 hover:border-sky-400/30 rounded-xl pl-3 pr-3 sm:pr-4 py-2.5 text-[#a3cbf2]/70 hover:text-[#cee5ff] text-xs sm:text-sm focus:outline-none focus:border-sky-400/50 transition-all duration-300 flex items-center justify-between shadow-sm relative z-10"
             >
-              <span className="block truncate">{statusFilter}</span>
-              <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3cbf2]/30 group-hover:text-sky-400 transition-all duration-300 ${openDropdown === 'status' ? 'rotate-180 text-sky-400' : ''}`} />
+              <span className="block truncate min-w-0 flex-1 text-left mr-2">{statusFilter}</span>
+              <ChevronDown size={14} className={`shrink-0 text-[#a3cbf2]/30 group-hover:text-sky-400 transition-all duration-300 ${openDropdown === 'status' ? 'rotate-180 text-sky-400' : ''}`} />
             </button>
-            <div className={`absolute top-full left-0 mt-2 min-w-full w-max bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 overflow-hidden origin-top transition-all duration-300 ease-out ${openDropdown === 'status' ? 'opacity-100 scale-y-100 translate-y-0 visible' : 'opacity-0 scale-y-95 -translate-y-2 invisible'}`}>
+            <div className={`absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-full sm:w-36 bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 overflow-hidden origin-top transition-all duration-300 ease-out ${openDropdown === 'status' ? 'opacity-100 scale-y-100 translate-y-0 visible' : 'opacity-0 scale-y-95 -translate-y-2 invisible'}`}>
               <div className="py-1">
                 {allStatuses.map(status => (
                   <button 
                     key={status} 
                     onClick={() => { setStatusFilter(status); setOpenDropdown(null); }} 
-                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm transition-colors duration-200 ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 font-medium' : 'text-[#a3cbf2]/70 hover:bg-white/5 hover:text-[#cee5ff]'}`}
+                    className={`w-full text-left px-4 py-2.5 text-xs sm:text-sm transition-colors duration-200 truncate ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 font-medium' : 'text-[#a3cbf2]/70 hover:bg-white/5 hover:text-[#cee5ff]'}`}
                   >
                     {status}
                   </button>
@@ -381,23 +381,23 @@ const BookingsManagement = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full min-w-0">
         {summaryCards.map(({ label, value, color, hoverBorder, hoverShadow }, idx) => (
           <div 
             key={label} 
-            className={`bg-[#002238] border border-white/5 rounded-xl p-3 sm:p-4 transform transition-all duration-500 ease-out cursor-default group hover:-translate-y-1 hover:shadow-lg ${hoverBorder} ${hoverShadow}`}
+            className={`bg-[#002238] border border-white/5 rounded-xl p-3 sm:p-4 min-w-0 transform transition-all duration-500 ease-out cursor-default group hover:-translate-y-1 hover:shadow-lg ${hoverBorder} ${hoverShadow}`}
             style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: `${idx * 100}ms` }}
           >
-            <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs mb-0.5 sm:mb-1 group-hover:text-[#a3cbf2]/60 transition-colors duration-300 truncate">{label}</p>
-            <p className={`text-lg sm:text-2xl font-black ${color} group-hover:scale-105 origin-left transition-transform duration-300 truncate`}>{value}</p>
+            <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs mb-0.5 sm:mb-1 group-hover:text-[#a3cbf2]/60 transition-colors duration-300 truncate w-full">{label}</p>
+            <p className={`text-lg sm:text-2xl font-black ${color} group-hover:scale-105 origin-left transition-transform duration-300 truncate w-full`}>{value}</p>
           </div>
         ))}
       </div>
 
       {/* Bookings List */}
-      <div className="relative z-10 space-y-2 sm:space-y-3 w-full">
+      <div className="relative z-10 space-y-2 sm:space-y-3 w-full min-w-0">
         {filteredBookings.length === 0 && (
-          <div className="bg-[#002238] border border-white/5 rounded-2xl p-8 sm:p-12 text-center">
+          <div className="bg-[#002238] border border-white/5 rounded-2xl p-8 sm:p-12 text-center min-w-0">
             <p className="text-[#a3cbf2]/30 text-sm">No bookings match the selected filters.</p>
           </div>
         )}
@@ -410,54 +410,62 @@ const BookingsManagement = () => {
           return (
             <div
               key={booking.id}
-              className={`w-full bg-[#002238] border rounded-xl sm:rounded-2xl overflow-hidden transform transition-all duration-500 ease-out ${
+              className={`w-full bg-[#002238] border rounded-xl sm:rounded-2xl overflow-hidden transform transition-all duration-500 ease-out min-w-0 ${
                 isExpanded ? "border-sky-400/30 shadow-lg shadow-sky-400/5" : "border-white/5 hover:border-white/10"
               }`}
               style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(30px)", transitionDelay: `${(idx + 2) * 100}ms` }}
             >
               {/* Main Row */}
               <div className={`w-full text-left px-3 py-3 sm:px-5 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 transition-colors duration-300 ${isExpanded ? "bg-sky-400/5" : "hover:bg-white/[0.02]"}`}>
+                
                 <button className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1" onClick={() => toggleExpand(booking.id)}>
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-black text-xs sm:text-sm shrink-0 transition-colors duration-300 ${isExpanded ? "bg-sky-500/20 text-sky-400" : "bg-sky-500/10 text-sky-400/70"}`}>
+                  {/* AVATAR: Hidden on mobile */}
+                  <div className={`hidden sm:flex w-10 h-10 rounded-full items-center justify-center font-black text-sm shrink-0 transition-colors duration-300 ${isExpanded ? "bg-sky-500/20 text-sky-400" : "bg-sky-500/10 text-sky-400/70"}`}>
                     {booking.userFullName?.[0] || "G"}
                   </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                      <p className="text-[#cee5ff] font-semibold text-[13px] sm:text-sm truncate max-w-[100px] min-[375px]:max-w-[130px] sm:max-w-none">{booking.userFullName || "Guest"}</p>
-                      <span className={`px-1.5 py-[1px] sm:px-2 sm:py-0.5 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap shrink-0 ${statusStyle}`}>{statusText}</span>
+                  
+                  <div className="min-w-0 flex-1 text-left flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 w-full">
+                      <p className="text-[#cee5ff] font-semibold text-[13px] sm:text-sm truncate max-w-[120px] min-[375px]:max-w-[150px] sm:max-w-none">{booking.userFullName || "Guest"}</p>
+                      <span className={`px-1.5 py-[1px] sm:px-2 sm:py-0.5 rounded-full text-[10px] sm:text-xs font-bold shrink-0 ${statusStyle}`}>{statusText}</span>
+                      
+                      {/* Note Icon */}
                       {booking.specialRequests && (
-                        <span className="hidden sm:flex items-center gap-1 text-yellow-400/60 text-[10px] sm:text-xs shrink-0">
-                          <MessageSquare size={11} /> Note
+                        <span className="flex items-center text-yellow-400/60 text-[10px] sm:text-xs shrink-0 gap-1" title="Special Requests">
+                          <MessageSquare size={12} />
+                          <span className="hidden sm:inline">Note</span>
                         </span>
                       )}
+                      
+                      {/* Receipt Icon Only */}
                       {booking.payment?.receiptImageUrl && (
-                        <span className="flex items-center gap-0.5 text-emerald-400/80 text-[10px] sm:text-xs shrink-0">
-                          <ImageIcon size={10} /> Receipt
+                        <span className="flex items-center text-emerald-400/80 shrink-0 cursor-help" title="Contains Receipt">
+                          <ImageIcon size={14} />
                         </span>
                       )}
                     </div>
-                    <p className="text-[#a3cbf2]/40 text-[11px] sm:text-xs mt-0.5 sm:mt-1 truncate w-full">
-                      {booking.tripTitle} <span className="hidden sm:inline">·</span>
-                      <span className="sm:hidden block h-0.5"></span> 
-                      <span className="inline-flex items-center gap-1 shrink-0">
-                        <Calendar size={10} /> {formatDate(booking.startDate)}
-                      </span>
-                    </p>
+                    
+                    <div className="text-[#a3cbf2]/40 text-[11px] sm:text-xs mt-0.5 sm:mt-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 w-full min-w-0">
+                      <span className="truncate min-w-0">{booking.tripTitle}</span>
+                      <span className="hidden sm:inline text-[#a3cbf2]/30 shrink-0">·</span>
+                      <span className="inline-flex items-center gap-1 shrink-0"><Calendar size={10} /> {formatDate(booking.startDate)}</span>
+                    </div>
                   </div>
                 </button>
 
                 <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-                  <div className="text-right hidden sm:block">
+                  <div className="text-right hidden sm:block shrink-0">
                     <p className="text-sky-400 font-bold text-sm">{formatPrice(booking.totalPrice)}</p>
                     <p className="text-[#a3cbf2]/40 text-xs flex items-center gap-1 justify-end">
                       <Users size={10} /> {booking.numberOfParticipants} {booking.numberOfParticipants === 1 ? 'person' : 'persons'}
                     </p>
                   </div>
                   
+                  {/* Delete Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); openDeleteConfirm(booking); }}
                     disabled={deletingId === booking.id}
-                    className="p-1.5 sm:p-2 rounded-lg bg-rose-400/10 text-rose-400 hover:bg-rose-400/20 transition-all duration-200 disabled:opacity-50 shrink-0"
+                    className="p-1.5 sm:p-2 rounded-lg bg-rose-400/10 text-rose-400 hover:bg-rose-400/20 transition-all duration-200 disabled:opacity-50 shrink-0 ml-1"
                     title="Delete Booking"
                   >
                     {deletingId === booking.id ? (
@@ -467,6 +475,7 @@ const BookingsManagement = () => {
                     )}
                   </button>
                   
+                  {/* Dropdown Chevron */}
                   <button onClick={() => toggleExpand(booking.id)} className="p-1 sm:p-0 shrink-0">
                     <ChevronDown size={18} className={`transition-all duration-300 w-4 h-4 sm:w-[18px] sm:h-[18px] ${isExpanded ? "rotate-180 text-sky-400" : "text-[#a3cbf2]/30"}`} />
                   </button>
@@ -474,69 +483,69 @@ const BookingsManagement = () => {
               </div>
 
               {/* Expanded Details */}
-              <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-                <div className="overflow-hidden">
-                  <div className="px-3 sm:px-5 pb-4 sm:pb-5 pt-1 sm:pt-2 space-y-3 sm:space-y-4">
-                    <div className="h-px bg-white/5" />
+              <div className={`grid transition-all duration-300 ease-in-out w-full min-w-0 ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                <div className="overflow-hidden w-full min-w-0">
+                  <div className="px-3 sm:px-5 pb-4 sm:pb-5 pt-1 sm:pt-2 space-y-3 sm:space-y-4 w-full min-w-0">
+                    <div className="h-px bg-white/5 w-full" />
 
-                    <div className="flex justify-between sm:justify-end items-center">
-                      <div className="sm:hidden text-left">
-                        <p className="text-sky-400 font-bold text-sm">{formatPrice(booking.totalPrice)}</p>
-                        <p className="text-[#a3cbf2]/40 text-[10px] flex items-center gap-1">
-                          <Users size={10} /> {booking.numberOfParticipants} {booking.numberOfParticipants === 1 ? 'person' : 'persons'}
+                    <div className="flex justify-between sm:justify-end items-center min-w-0">
+                      <div className="sm:hidden text-left min-w-0">
+                        <p className="text-sky-400 font-bold text-sm truncate">{formatPrice(booking.totalPrice)}</p>
+                        <p className="text-[#a3cbf2]/40 text-[10px] flex items-center gap-1 truncate">
+                          <Users size={10} className="shrink-0" /> {booking.numberOfParticipants} {booking.numberOfParticipants === 1 ? 'person' : 'persons'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 w-full min-w-0">
                       {/* Customer Details */}
-                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300">
+                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300 min-w-0 flex flex-col w-full">
                         <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-2 sm:mb-3">Customer Details</p>
-                        <div className="space-y-2 sm:space-y-2.5">
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                        <div className="space-y-2 sm:space-y-2.5 w-full min-w-0">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Name</span>
-                            <span className="text-[#cee5ff] font-medium text-right break-words">{booking.userFullName || "N/A"}</span>
+                            <span className="text-[#cee5ff] font-medium truncate flex-1 text-right">{booking.userFullName || "N/A"}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Email</span>
-                            <span className="text-[#cee5ff] font-medium break-all text-right">{booking.userEmail || "N/A"}</span>
+                            <span className="text-[#cee5ff] font-medium truncate flex-1 text-right">{booking.userEmail || "N/A"}</span>
                           </div>
                           {booking.userPhoneNumber && (
-                            <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                            <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                               <span className="text-[#a3cbf2]/40 shrink-0">Phone</span>
-                              <span className="text-[#cee5ff] font-medium text-right break-words">{booking.userPhoneNumber}</span>
+                              <span className="text-[#cee5ff] font-medium truncate flex-1 text-right">{booking.userPhoneNumber}</span>
                             </div>
                           )}
                         </div>
                       </div>
 
                       {/* Trip Details */}
-                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300">
+                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300 min-w-0 flex flex-col w-full">
                         <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-2 sm:mb-3">Trip Details</p>
-                        <div className="space-y-2 sm:space-y-2.5">
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                        <div className="space-y-2 sm:space-y-2.5 w-full min-w-0">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Trip</span>
-                            <span className="text-[#cee5ff] font-medium text-right break-words">{booking.tripTitle}</span>
+                            <span className="text-[#cee5ff] font-medium truncate flex-1 text-right">{booking.tripTitle}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Boat</span>
-                            <span className="text-[#cee5ff] font-medium text-right break-words">{booking.boatName || "N/A"}</span>
+                            <span className="text-[#cee5ff] font-medium truncate flex-1 text-right">{booking.boatName || "N/A"}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Start Date</span>
-                            <span className="text-[#cee5ff] font-medium text-right">{formatDate(booking.startDate)}</span>
+                            <span className="text-[#cee5ff] font-medium shrink-0 text-right">{formatDate(booking.startDate)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">End Date</span>
-                            <span className="text-[#cee5ff] font-medium text-right">{formatDate(booking.endDate)}</span>
+                            <span className="text-[#cee5ff] font-medium shrink-0 text-right">{formatDate(booking.endDate)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Participants</span>
-                            <span className="text-[#cee5ff] font-medium text-right">{booking.numberOfParticipants} persons</span>
+                            <span className="text-[#cee5ff] font-medium shrink-0 text-right">{booking.numberOfParticipants} persons</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
+                          <div className="flex justify-between items-center text-xs sm:text-sm gap-2 min-w-0">
                             <span className="text-[#a3cbf2]/40 shrink-0">Total Amount</span>
-                            <span className="text-sky-400 font-bold text-right">{formatPrice(booking.totalPrice)}</span>
+                            <span className="text-sky-400 font-bold shrink-0 text-right">{formatPrice(booking.totalPrice)}</span>
                           </div>
                         </div>
                       </div>
@@ -544,29 +553,29 @@ const BookingsManagement = () => {
 
                     {/* Payment Details */}
                     {booking.payment && (
-                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300">
-                        <div className="flex items-center justify-between mb-2 sm:mb-3">
-                          <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs font-medium uppercase tracking-wider">Payment Details</p>
+                      <div className="bg-[#001526]/60 rounded-xl p-3 sm:p-4 border border-white/5 hover:border-white/10 transition-colors duration-300 w-full min-w-0">
+                        <div className="flex items-center justify-between mb-2 sm:mb-3 min-w-0 w-full">
+                          <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs font-medium uppercase tracking-wider truncate mr-2">Payment Details</p>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shrink-0 ${getPaymentStatusStyle(booking.payment.status)}`}>
                             {getPaymentStatusText(booking.payment.status)}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          <div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full min-w-0">
+                          <div className="min-w-0 w-full">
                             <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs">Amount</p>
-                            <p className="text-[#cee5ff] font-medium text-xs sm:text-sm">{formatPrice(booking.payment.amount)}</p>
+                            <p className="text-[#cee5ff] font-medium text-xs sm:text-sm truncate w-full">{formatPrice(booking.payment.amount)}</p>
                           </div>
-                          <div>
-                            <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs">Payment Method</p>
-                            <p className="text-[#cee5ff] font-medium text-xs sm:text-sm">{getPaymentMethodText(booking.payment.method)}</p>
+                          <div className="min-w-0 w-full">
+                            <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs">Method</p>
+                            <p className="text-[#cee5ff] font-medium text-xs sm:text-sm truncate w-full">{getPaymentMethodText(booking.payment.method)}</p>
                           </div>
 
-                          {/* Show Receipt Button if has image */}
+                          {/* Show Receipt Button */}
                           {booking.payment.receiptImageUrl && (
-                            <div className="col-span-full mt-1 sm:mt-2">
+                            <div className="col-span-full mt-1 sm:mt-2 min-w-0 w-full">
                               <button
                                 onClick={() => setReceiptModal(getImageUrl(booking.payment.receiptImageUrl))}
-                                className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-400/10 text-sky-400 border border-sky-400/20 hover:bg-sky-400/20 transition-all text-xs sm:text-sm font-medium"
+                                className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-400/10 text-sky-400 border border-sky-400/20 hover:bg-sky-400/20 transition-all text-xs sm:text-sm font-medium min-w-0"
                               >
                                 <ImageIcon size={14} className="shrink-0" /> 
                                 <span className="truncate">View Payment Receipt</span>
@@ -575,9 +584,28 @@ const BookingsManagement = () => {
                           )}
 
                           {booking.payment.transactionId && (
-                            <div className="col-span-full mt-1 sm:mt-2">
+                            <div className="col-span-full mt-1 sm:mt-2 min-w-0 w-full">
                               <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs">Transaction ID</p>
-                              <p className="text-[#cee5ff] font-mono text-[10px] sm:text-xs break-all">{booking.payment.transactionId}</p>
+                              <p className="text-[#cee5ff] font-mono text-[10px] sm:text-xs break-all whitespace-normal leading-relaxed">{booking.payment.transactionId}</p>
+                            </div>
+                          )}
+                          
+                          {/* Payment Verification Buttons */}
+                          {booking.payment.method === 2 && booking.payment.status === 1 && (
+                            <div className="col-span-full mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-white/5 w-full min-w-0">
+                              <p className="text-[#a3cbf2]/40 text-[10px] sm:text-xs w-full mb-1">Verification Action Required</p>
+                              <button
+                                onClick={() => setPaymentVerifyModal({ bookingId: booking.id, paymentId: booking.payment.id, isApproved: true })}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-teal-400/10 text-teal-400 border border-teal-400/20 hover:bg-teal-400/20 transition-all text-[11px] sm:text-xs font-medium min-w-0"
+                              >
+                                <Check size={14} className="shrink-0" /> <span className="truncate">Approve</span>
+                              </button>
+                              <button
+                                onClick={() => setPaymentVerifyModal({ bookingId: booking.id, paymentId: booking.payment.id, isApproved: false })}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/20 transition-all text-[11px] sm:text-xs font-medium min-w-0"
+                              >
+                                <X size={14} className="shrink-0" /> <span className="truncate">Reject</span>
+                              </button>
                             </div>
                           )}
                         </div>
@@ -586,11 +614,12 @@ const BookingsManagement = () => {
 
                     {/* Special Requests */}
                     {booking.specialRequests && (
-                      <div className="bg-yellow-400/5 border border-yellow-400/10 rounded-xl p-3 sm:p-4">
-                        <p className="text-yellow-400 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1.5 sm:mb-2 flex items-center gap-1.5">
-                          <MessageSquare size={12} /> Special Requests
+                      <div className="bg-yellow-400/5 border border-yellow-400/10 rounded-xl p-3 sm:p-4 w-full min-w-0 flex flex-col">
+                        <p className="text-yellow-400 text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1.5 sm:mb-2 flex items-center gap-1.5 w-full min-w-0">
+                          <MessageSquare size={12} className="shrink-0" /> 
+                          <span className="truncate">Special Requests</span>
                         </p>
-                        <p className="text-[#cee5ff]/80 text-xs sm:text-sm leading-relaxed break-words">"{booking.specialRequests}"</p>
+                        <p className="text-[#cee5ff]/80 text-xs sm:text-sm leading-relaxed break-words whitespace-normal w-full">{booking.specialRequests}</p>
                       </div>
                     )}
                   </div>
