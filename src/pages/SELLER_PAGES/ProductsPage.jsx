@@ -1,37 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Pencil, Trash2, Eye, Filter, Package, ChevronDown } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, Package, ChevronDown, Filter, Loader2 } from "lucide-react";
+import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
 
-const initialProducts = [
-  { id: "1", name: "Apex Carbon Reel", category: "Reels", price: 849, stock: 14, rating: 4.8, image: null, status: "Active" },
-  { id: "2", name: "HydroScan V3", category: "Electronics", price: 1299, stock: 6, rating: 4.9, image: null, status: "Active" },
-  { id: "3", name: "Deep Bait Master", category: "Baits", price: 145, stock: 52, rating: 4.5, image: null, status: "Active" },
-  { id: "4", name: "Nautical One Pro", category: "Hooks", price: 550, stock: 0, rating: 4.2, image: null, status: "Out of Stock" },
-  { id: "5", name: "CarbonFlex Rod 9ft", category: "Fishing Rods", price: 720, stock: 3, rating: 4.7, image: null, status: "Low Stock" },
-];
-
-const categories = ["All Categories", "Fishing Rods", "Reels", "Baits", "Hooks", "Electronics", "Wearables"];
+const categories = ["All Categories", "Fishing Rods", "Fishing Reels", "Fishing Lines", "Hooks & Rigs", "Lures & Baits", "Fishing Accessories", "Fishing Clothing", "Snorkeling & Diving", "Boats & Marine Equipment", "Storage & Bags"];
 const statusFilters = ["All", "Active", "Out of Stock", "Low Stock"];
-
-const statusStyles = {
-  Active: "bg-sky-400/10 text-sky-400",
-  "Out of Stock": "bg-[#a3cbf2]/10 text-[#a3cbf2]/50",
-  "Low Stock": "bg-yellow-400/10 text-yellow-400",
-};
 
 const ProductsPage = () => {
   const navigate = useNavigate();
-  const [products, setProducts] = useState(initialProducts);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const { 
+    products, 
+    loading, 
+    searchTerm,
+    setSearchTerm,
+    categoryFilter,
+    setCategoryFilter,
+    statusFilter,
+    setStatusFilter,
+    priceRange,
+    setPriceRange,
+    clearFilters,
+    deleteProduct,
+    getStockStatus,
+    getCategoryName,
+    getImageUrl,
+    isSeller
+  } = useProducts();
+  
+  const [animate, setAnimate] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  
-  // Animation & Dropdown States
-  const [animate, setAnimate] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null); // 'category' | 'status' | null
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -39,24 +39,43 @@ const ProductsPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = categoryFilter === "All Categories" || p.category === categoryFilter;
-    const matchesStatus = statusFilter === "All" || p.status === statusFilter;
-    const matchesPrice = (!priceRange.min || p.price >= parseInt(priceRange.min)) &&
-                         (!priceRange.max || p.price <= parseInt(priceRange.max));
-    return matchesSearch && matchesCategory && matchesStatus && matchesPrice;
-  });
-
   const confirmDelete = (id) => setDeleteId(id);
-  const doDelete = () => {
-    setProducts(products.filter(p => p.id !== deleteId));
-    setDeleteId(null);
+  
+  const doDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteProduct(deleteId);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Delete error:", error);
+    } finally {
+      setDeleting(false);
+    }
   };
+
+  if (!isSeller) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-[#a3cbf2]/50">You don't have permission to access this page</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 size={48} className="text-sky-400 animate-spin mx-auto mb-4" />
+          <p className="text-[#a3cbf2]/50">Loading your products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">
-      
       {/* Header */}
       <div 
         className={`flex items-center justify-between flex-wrap gap-3 transform transition-all duration-700 ease-out ${
@@ -65,7 +84,7 @@ const ProductsPage = () => {
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">My Products</h1>
-          <p className="text-[#a3cbf2]/50 text-sm mt-1">{filteredProducts.length} products found</p>
+          <p className="text-[#a3cbf2]/50 text-sm mt-1">{products.length} products found</p>
         </div>
         <button
           onClick={() => navigate("/seller/products/add")}
@@ -87,8 +106,8 @@ const ProductsPage = () => {
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a3cbf2]/40 group-focus-within:text-sky-400 transition-colors duration-300" size={18} />
           <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-[#002238] border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm text-[#cee5ff] placeholder:text-[#a3cbf2]/30 focus:outline-none focus:border-sky-400/50 focus:ring-1 focus:ring-sky-400/20 transition-all duration-300 shadow-sm hover:shadow-sky-400/5"
             placeholder="Search products by name..."
           />
@@ -105,12 +124,12 @@ const ProductsPage = () => {
         </button>
       </div>
 
-      {/* Filter Panel (Animated Fade Down) */}
+      {/* Filter Panel */}
       {showFilters && (
         <div className="bg-[#002238] border border-white/5 rounded-2xl p-5 shadow-lg relative z-40 animate-[fadeDown_0.3s_ease-out]">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
             
-            {/* Animated Category Filter */}
+            {/* Category Filter */}
             <div className={`relative group ${openDropdown === 'category' ? 'z-50' : 'z-10'}`}>
               <label className="block text-[#a3cbf2]/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Category</label>
               <button
@@ -152,7 +171,7 @@ const ProductsPage = () => {
               </div>
             </div>
 
-            {/* Animated Status Filter */}
+            {/* Status Filter */}
             <div className={`relative group ${openDropdown === 'status' ? 'z-50' : 'z-10'}`}>
               <label className="block text-[#a3cbf2]/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Status</label>
               <button
@@ -218,7 +237,7 @@ const ProductsPage = () => {
           </div>
           
           <button
-            onClick={() => { setCategoryFilter("All Categories"); setStatusFilter("All"); setPriceRange({ min: "", max: "" }); setSearch(""); }}
+            onClick={clearFilters}
             className="mt-4 text-xs font-semibold text-[#a3cbf2]/40 hover:text-sky-400 transition-colors duration-200"
           >
             Clear all filters
@@ -227,7 +246,7 @@ const ProductsPage = () => {
       )}
 
       {/* Products Grid */}
-      {filteredProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div 
           className="bg-[#002238] border border-white/5 rounded-2xl p-12 text-center transform transition-all duration-700 ease-out"
           style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "200ms" }}
@@ -243,75 +262,76 @@ const ProductsPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 relative z-10">
-          {filteredProducts.map((product, idx) => (
-            <div
-              key={product.id}
-              className="group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transform transition-all duration-700 ease-out"
-              style={{
-                opacity: animate ? 1 : 0,
-                transform: animate ? "translateY(0)" : "translateY(30px)",
-                transitionDelay: `${(idx + 2) * 100}ms`,
-              }}
-            >
-              {/* Image */}
-              <div className="h-44 bg-gradient-to-br from-sky-900 to-[#001526] flex items-center justify-center relative overflow-hidden">
-                {product.image ? (
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <Package size={40} className="text-[#a3cbf2]/20 group-hover:scale-110 transition-transform duration-500" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent opacity-60" />
-                {/* Floating Status Badge */}
-                <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm z-10 ${statusStyles[product.status]}`}>
-                  {product.status}
-                </span>
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-[#cee5ff] font-bold text-base group-hover:text-white transition-colors line-clamp-1">{product.name}</h3>
-                    <p className="text-[#a3cbf2]/50 text-xs mt-1 font-medium">{product.category}</p>
-                  </div>
-                  <span className="text-yellow-400 text-xs tracking-widest shrink-0 ml-2">
-                    {"★".repeat(Math.floor(product.rating))}{"☆".repeat(5 - Math.floor(product.rating))}
+          {products.map((product, idx) => {
+            const stockStatus = getStockStatus(product.stockQuantity);
+            const imageUrl = getImageUrl(product.mainImageUrl);
+            
+            return (
+              <div
+                key={product.id}
+                className="group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transform transition-all duration-700 ease-out"
+                style={{
+                  opacity: animate ? 1 : 0,
+                  transform: animate ? "translateY(0)" : "translateY(30px)",
+                  transitionDelay: `${(idx + 2) * 100}ms`,
+                }}
+              >
+                {/* Image */}
+                <div className="h-44 bg-gradient-to-br from-sky-900 to-[#001526] flex items-center justify-center relative overflow-hidden">
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <Package size={40} className="text-[#a3cbf2]/20 group-hover:scale-110 transition-transform duration-500" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent opacity-60" />
+                  <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm z-10 ${stockStatus.className}`}>
+                    {stockStatus.text}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 mt-4">
-                  <span className="text-sky-400 font-black text-xl">${product.price}</span>
-                </div>
+                {/* Content */}
+                <div className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-[#cee5ff] font-bold text-base group-hover:text-white transition-colors line-clamp-1">{product.title}</h3>
+                      <p className="text-[#a3cbf2]/50 text-xs mt-1 font-medium">{getCategoryName(product.category)}</p>
+                    </div>
+                  </div>
 
-                <p className="text-[#a3cbf2]/40 text-xs mt-2">Stock: {product.stock} units</p>
+                  <div className="flex items-center gap-3 mt-4">
+                    <span className="text-sky-400 font-black text-xl">${product.price}</span>
+                  </div>
 
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-white/5">
-                  <button
-                    onClick={() => navigate(`/seller/products/${product.id}`)}
-                    className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
-                    title="View Details"
-                  >
-                    <Eye size={16} />
-                  </button>
-                  <button
-                    onClick={() => navigate(`/seller/products/edit/${product.id}`, { state: { product } })}
-                    className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200"
-                    title="Edit"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(product.id)}
-                    className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <p className="text-[#a3cbf2]/40 text-xs mt-2">Stock: {product.stockQuantity} units</p>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-white/5">
+                    <button
+                      onClick={() => navigate(`/seller/products/${product.id}`)}
+                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
+                      title="View Details"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/seller/products/edit/${product.id}`, { state: { product } })}
+                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200"
+                      title="Edit"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => confirmDelete(product.id)}
+                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
+                      title="Delete"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -322,24 +342,23 @@ const ProductsPage = () => {
             <h3 className="text-[#cee5ff] font-bold text-lg mb-2">Delete Product?</h3>
             <p className="text-[#a3cbf2]/60 text-sm mb-6">This will permanently remove the product from your store. This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+              <button onClick={() => setDeleteId(null)} disabled={deleting} className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all disabled:opacity-50">
                 Cancel
               </button>
-              <button onClick={doDelete} className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-400/20 hover:bg-red-500/30 text-sm font-bold transition-all">
-                Delete
+              <button onClick={doDelete} disabled={deleting} className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-400/20 hover:bg-red-500/30 text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                {deleting ? <Loader2 size={16} className="animate-spin" /> : null}
+                {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Required custom CSS for the filter fade-down animation */}
       <style>{`
         @keyframes fadeDown {
           from { opacity: 0; transform: translateY(-10px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        /* Custom scrollbar to keep animated dropdowns looking clean */
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
@@ -349,9 +368,6 @@ const ProductsPage = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(163, 203, 242, 0.2);
           border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(163, 203, 242, 0.4);
         }
       `}</style>
     </div>

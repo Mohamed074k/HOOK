@@ -1,7 +1,8 @@
+// components/ProtectedRoute.jsx
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-// ─── Role → default dashboard path ───────────────────────────────────────────
+// Role → default dashboard path
 const ROLE_DEFAULTS = {
   Admin: "/super-admin",
   Seller: "/seller",
@@ -9,7 +10,7 @@ const ROLE_DEFAULTS = {
   User: "/",
 };
 
-const ProtectedRoute = ({ allowedRoles = [], children }) => {
+const ProtectedRoute = ({ allowedRoles = [], children, requiredRole }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -32,7 +33,7 @@ const ProtectedRoute = ({ allowedRoles = [], children }) => {
 
   if (!hasAllowedRole) {
     // Redirect to the user's primary role dashboard
-    const primaryRole = userRoles[0]; 
+    const primaryRole = userRoles[0];
     const fallback = ROLE_DEFAULTS[primaryRole] ?? "/";
     return <Navigate to={fallback} replace />;
   }
