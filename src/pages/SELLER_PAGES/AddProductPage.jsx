@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, ImagePlus, Upload, Trash2, ChevronLeft, Loader2 } from "lucide-react";
+import { X, ImagePlus, Upload, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
 
 const categories = [
@@ -138,8 +138,8 @@ const AddProductPage = () => {
         className="flex items-center gap-4 transform transition-all duration-700 ease-out"
         style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)" }}
       >
-        <button onClick={() => navigate("/seller/products")} className="p-2 rounded-xl text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all">
-          <ChevronLeft size={20} />
+        <button onClick={() => navigate("/seller/products")} className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[#a3cbf2] hover:text-white hover:border-white/10 transition-all shadow-sm">
+          <ArrowLeft size={18} />
         </button>
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">

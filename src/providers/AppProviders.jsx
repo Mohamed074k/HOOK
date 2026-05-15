@@ -12,6 +12,7 @@ import { BookingProvider } from "../context/BOAT_OWNER_CONTEXT/BookingContext";
 
 // SUPER ADMIN CONTEXTS
 import { SellerProvider } from "../context/SUPER_ADMIN_CONTEXT/SellersContext";
+import { SuperAdminProductProvider } from "../context/SUPER_ADMIN_CONTEXT/ProductContext";
 
 // SELLER CONTEXTS
 import { ProductProvider } from "../context/SELLER_CONTEXT/ProductContext";
@@ -37,7 +38,9 @@ const SellerProviders = ({ children }) => (
 
 // Super Admin Providers
 const SuperAdminProviders = ({ children }) => (
-  <SellerProvider>{children}</SellerProvider>
+  <SellerProvider>
+    <SuperAdminProductProvider>{children}</SuperAdminProductProvider>
+  </SellerProvider>
 );
 
 // App Providers for public pages (all users)

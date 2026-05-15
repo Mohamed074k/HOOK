@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Package, Star, Loader2, Pencil } from "lucide-react";
+import { ArrowLeft, Package, Star, Loader2, Pencil } from "lucide-react";
 import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
+import ProductReviews from "./../../components/SELLER_COMPONENTS/ProductReviews";
 
 const ProductDetailsPage = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const ProductDetailsPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [animate, setAnimate] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -65,6 +67,17 @@ const ProductDetailsPage = () => {
   const stockStatus = product.stockQuantity <= 0 ? "Out of Stock" : (product.stockQuantity <= 5 ? "Low Stock" : "In Stock");
   const stockColor = product.stockQuantity <= 0 ? "text-rose-400" : (product.stockQuantity <= 5 ? "text-yellow-400" : "text-emerald-400");
 
+  // Show reviews view
+  if (showReviews) {
+    return (
+      <ProductReviews 
+        product={product} 
+        onBack={() => setShowReviews(false)} 
+        animate={animate}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* Header */}
@@ -73,20 +86,28 @@ const ProductDetailsPage = () => {
         style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)" }}
       >
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate("/seller/products")} className="p-2 rounded-xl text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all">
-            <ChevronLeft size={20} />
+          <button onClick={() => navigate("/seller/products")} className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[#a3cbf2] hover:text-white hover:border-white/10 transition-all shadow-sm">
+            <ArrowLeft size={18} />
           </button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">{product.title}</h1>
             <p className="text-[#a3cbf2]/50 text-sm mt-1">Product Details</p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/seller/products/edit/${id}`, { state: { product } })}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-400/20 hover:bg-sky-500/20 transition-all duration-300"
-        >
-          <Pencil size={15} /> Edit Product
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowReviews(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-400/20 hover:bg-amber-500/20 transition-all duration-300"
+          >
+            <Star size={15} />
+          </button>
+          <button
+            onClick={() => navigate(`/seller/products/edit/${id}`, { state: { product } })}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-400/20 hover:bg-sky-500/20 transition-all duration-300"
+          >
+            <Pencil size={15} /> 
+          </button>
+        </div>
       </div>
       
       {/* Image Gallery */}
@@ -145,41 +166,6 @@ const ProductDetailsPage = () => {
             <p className="text-[#cee5ff]/80 text-sm leading-relaxed bg-[#001526] p-4 rounded-xl border border-white/5">{product.description}</p>
           </div>
         </div>
-      </div>
-      
-      {/* Reviews */}
-      <div 
-        className="bg-[#002238] border border-white/5 rounded-2xl p-6 transform transition-all duration-700 ease-out hover:border-white/10"
-        style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "300ms" }}
-      >
-        <h2 className="text-sm font-bold text-[#cee5ff] mb-4">Customer Reviews</h2>
-        {!product.reviews || product.reviews.length === 0 ? (
-          <p className="text-[#a3cbf2]/40 text-sm text-center py-6 bg-[#001526] rounded-xl border border-white/5">No reviews yet</p>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 mb-4 pb-3 border-b border-white/5">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-400">{product.averageRating?.toFixed(1) || 0}</div>
-                <div className="text-yellow-400 text-sm tracking-widest">
-                  {"★".repeat(Math.floor(product.averageRating || 0))}{"☆".repeat(5 - Math.floor(product.averageRating || 0))}
-                </div>
-                <div className="text-[#a3cbf2]/40 text-xs mt-1">({product.reviewsCount} reviews)</div>
-              </div>
-            </div>
-            {product.reviews.map((review, idx) => (
-              <div key={idx} className="bg-[#001526] p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[#cee5ff] font-medium text-sm">{review.userName || "Anonymous"}</span>
-                  <span className="text-yellow-400 text-xs tracking-widest">
-                    {"★".repeat(Math.floor(review.rating || 0))}{"☆".repeat(5 - Math.floor(review.rating || 0))}
-                  </span>
-                </div>
-                <p className="text-[#a3cbf2]/40 text-xs mb-2">{review.date ? new Date(review.date).toLocaleDateString() : ""}</p>
-                <p className="text-[#cee5ff]/80 text-sm">"{review.comment}"</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -46,8 +46,7 @@ import AddProductPage from "./pages/SELLER_PAGES/AddProductPage";
 import ProductDetailsPage from "./pages/SELLER_PAGES/ProductDetailsPage";
 import OrdersPage from "./pages/SELLER_PAGES/OrdersPage";
 import EarningsPage from "./pages/SELLER_PAGES/EarningsPage";
-import SellerReviewsPage from "./pages/SELLER_PAGES/SellerReviewsPage";
-import SellerSettingsPage from "./pages/SELLER_PAGES/SellerSettingsPage";
+ import SellerSettingsPage from "./pages/SELLER_PAGES/SellerSettingsPage";
 
 // ─── Boat Owner Pages ──────────────────────────────────────────────────────
 import GuideDashboard from "./pages/BOAT_OWNER_PAGES/GuideDashboard";
@@ -134,8 +133,7 @@ const router = createBrowserRouter([
       { path: "products/:id", element: <ProductDetailsPage /> },
       { path: "orders", element: <OrdersPage /> },
       { path: "earnings", element: <EarningsPage /> },
-      { path: "reviews", element: <SellerReviewsPage /> },
-      { path: "settings", element: <SellerSettingsPage /> },
+       { path: "settings", element: <SellerSettingsPage /> },
     ],
   },
 

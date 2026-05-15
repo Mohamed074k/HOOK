@@ -24,32 +24,75 @@ const ProductsPage = () => {
     getStockStatus,
     getCategoryName,
     getImageUrl,
+    getProductDetails, 
     isSeller
   } = useProducts();
   
   const [animate, setAnimate] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [editingId, setEditingId] = useState(null); 
+  
+  // --- Modal States ---
+  const [deleteId, setDeleteId] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Initial page load animation
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => setAnimate(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  const confirmDelete = (id) => setDeleteId(id);
+  // --- Scroll Lock Hook for Modal ---
+  useEffect(() => {
+    if (deleteId) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup function to ensure scrolling is restored if component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [deleteId]);
+
+  // --- Modal Logic ---
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+    // Tiny delay to ensure the DOM has mounted before triggering the CSS transition
+    setTimeout(() => setIsModalVisible(true), 10);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+    // Wait for the CSS transition (300ms) to finish before unmounting
+    setTimeout(() => setDeleteId(null), 300);
+  };
   
   const doDelete = async () => {
     setDeleting(true);
     try {
       await deleteProduct(deleteId);
-      setDeleteId(null);
+      closeModal(); // Animate out on success
     } catch (error) {
       console.error("Delete error:", error);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleEdit = async (productId) => {
+    setEditingId(productId);
+    try {
+      const fullProduct = await getProductDetails(productId);
+      navigate(`/seller/products/edit/${productId}`, { state: { product: fullProduct } });
+    } catch (error) {
+      console.error("Failed to load product details for edit", error);
+    } finally {
+      setEditingId(null);
     }
   };
 
@@ -75,7 +118,7 @@ const ProductsPage = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 relative">
       {/* Header */}
       <div 
         className={`flex items-center justify-between flex-wrap gap-3 transform transition-all duration-700 ease-out ${
@@ -157,7 +200,7 @@ const ProductsPage = () => {
                   {categories.map(c => (
                     <button
                       key={c}
-                      onClick={() => { setCategoryFilter(c); setOpenDropdown(null); }}
+                      onMouseDown={() => { setCategoryFilter(c); setOpenDropdown(null); }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 ${
                         categoryFilter === c 
                           ? 'bg-sky-500/20 text-sky-400 font-medium' 
@@ -199,7 +242,7 @@ const ProductsPage = () => {
                   {statusFilters.map(s => (
                     <button
                       key={s}
-                      onClick={() => { setStatusFilter(s); setOpenDropdown(null); }}
+                      onMouseDown={() => { setStatusFilter(s); setOpenDropdown(null); }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 ${
                         statusFilter === s 
                           ? 'bg-sky-500/20 text-sky-400 font-medium' 
@@ -264,7 +307,8 @@ const ProductsPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 relative z-10">
           {products.map((product, idx) => {
             const stockStatus = getStockStatus(product.stockQuantity);
-            const imageUrl = getImageUrl(product.mainImageUrl);
+            const imagePath = product.mainImageUrl || (product.imageUrls && product.imageUrls[0]);
+            const imageUrl = getImageUrl(imagePath);
             
             return (
               <div
@@ -314,11 +358,12 @@ const ProductsPage = () => {
                       <Eye size={16} />
                     </button>
                     <button
-                      onClick={() => navigate(`/seller/products/edit/${product.id}`, { state: { product } })}
-                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200"
+                      onClick={() => handleEdit(product.id)}
+                      disabled={editingId === product.id}
+                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200 disabled:opacity-50"
                       title="Edit"
                     >
-                      <Pencil size={16} />
+                      {editingId === product.id ? <Loader2 size={16} className="animate-spin" /> : <Pencil size={16} />}
                     </button>
                     <button
                       onClick={() => confirmDelete(product.id)}
@@ -335,17 +380,42 @@ const ProductsPage = () => {
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* --- Animated Delete Modal --- */}
       {deleteId && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+        <div 
+          className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-300 ${
+            isModalVisible ? 'opacity-100 visible' : 'opacity-0 invisible'
+          }`}
+        >
+          {/* Full-screen Backdrop (Clicks outside close the modal unless deleting) */}
+          <div 
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+              isModalVisible ? 'opacity-100' : 'opacity-0'
+            }`} 
+            onClick={!deleting ? closeModal : undefined}
+          />
+
+          {/* Modal Container */}
+          <div 
+            className={`relative bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl transition-all duration-300 transform ${
+              isModalVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'
+            }`}
+          >
             <h3 className="text-[#cee5ff] font-bold text-lg mb-2">Delete Product?</h3>
             <p className="text-[#a3cbf2]/60 text-sm mb-6">This will permanently remove the product from your store. This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} disabled={deleting} className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all disabled:opacity-50">
+              <button 
+                onClick={closeModal} 
+                disabled={deleting} 
+                className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all disabled:opacity-50"
+              >
                 Cancel
               </button>
-              <button onClick={doDelete} disabled={deleting} className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-400/20 hover:bg-red-500/30 text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              <button 
+                onClick={doDelete} 
+                disabled={deleting} 
+                className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-400/20 hover:bg-red-500/30 text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
                 {deleting ? <Loader2 size={16} className="animate-spin" /> : null}
                 {deleting ? "Deleting..." : "Delete"}
               </button>

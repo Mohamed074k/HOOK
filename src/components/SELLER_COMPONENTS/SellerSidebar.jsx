@@ -10,9 +10,8 @@ const navItems = [
   { to: "/seller", label: "Dashboard", icon: LayoutDashboard },
   { to: "/seller/products", label: "Products", icon: Package },
   { to: "/seller/orders", label: "Orders", icon: ShoppingCart },
-  { to: "/seller/earnings", label: "Earnings", icon: DollarSign }, // REPLACED Analytics with Earnings
-  { to: "/seller/reviews", label: "Reviews", icon: Star },
-  { to: "/seller/settings", label: "Profile", icon: Settings }, // Changed from "Settings" to "Profile" to match requirements
+  { to: "/seller/earnings", label: "Earnings", icon: DollarSign },
+   { to: "/seller/settings", label: "Profile", icon: Settings }, 
 ];
 
 const SellerSidebar = ({ onClose }) => {

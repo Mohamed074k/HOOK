@@ -16,8 +16,7 @@ const navItems = [
   { to: "/super-admin/boats", label: "Boats", icon: Sailboat },
   { to: "/super-admin/bookings", label: "Bookings", icon: Calendar },
   { to: "/super-admin/products", label: "Products", icon: Package },
-  { to: "/super-admin/orders", label: "Orders", icon: ShoppingCart },
-  { to: "/super-admin/community", label: "Community", icon: MessageCircle },
+   { to: "/super-admin/community", label: "Community", icon: MessageCircle },
   { to: "/super-admin/settings", label: "Settings", icon: Settings },
 ];
 

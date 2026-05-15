@@ -112,10 +112,18 @@ export const ProductProvider = ({ children }) => {
         });
       }
 
-      const updatedProduct = await productService.updateProduct(formData);
-      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+      // 1. Send the update to the backend
+      await productService.updateProduct(formData);
+      
+      // 2. Fetch the fresh, COMPLETE product details using the GET /id endpoint
+      // This ensures we get the full object with images and descriptions back
+      const freshProduct = await productService.getProductById(productData.productId);
+      
+      // 3. Overwrite the state with the full data
+      setProducts(prev => prev.map(p => p.id === freshProduct.id ? freshProduct : p));
+      
       toast.success("Product updated successfully");
-      return updatedProduct;
+      return freshProduct;
     } catch (err) {
       console.error("Update product error:", err);
       let errorMessage = "Failed to update product";
