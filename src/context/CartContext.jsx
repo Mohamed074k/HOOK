@@ -25,9 +25,12 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
+      // Use stockQuantity (from API) or fallback to 99 if undefined
+      const stock = product.stockQuantity ?? 99; 
+
       if (existingItem) {
         // If it exists, but we hit the stock limit, don't add more
-        if (existingItem.quantity >= product.inStock) return prev;
+        if (existingItem.quantity >= stock) return prev;
         return prev.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
@@ -46,8 +49,9 @@ export const CartProvider = ({ children }) => {
       prev.map((item) => {
         if (item.id === productId) {
           const newQuantity = item.quantity + amount;
-          // Ensure quantity stays between 1 and inStock
-          if (newQuantity > 0 && newQuantity <= item.inStock) {
+          const stock = item.stockQuantity ?? 99;
+          // Ensure quantity stays between 1 and available stock
+          if (newQuantity > 0 && newQuantity <= stock) {
             return { ...item, quantity: newQuantity };
           }
         }
@@ -60,7 +64,7 @@ export const CartProvider = ({ children }) => {
 
   // Calculate totals
   const cartTotal = useMemo(() => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
   }, [cartItems]);
 
   const cartCount = useMemo(() => {

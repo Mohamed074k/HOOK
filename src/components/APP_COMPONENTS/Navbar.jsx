@@ -1,9 +1,17 @@
 import { NavLink, Link } from "react-router-dom";
-import { Anchor, ShoppingCart, Menu, X, User, LayoutDashboard, Trash2 } from "lucide-react";
+import { Anchor, ShoppingCart, Menu, X, User, LayoutDashboard, Trash2, Package } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext"; 
+
+// Helper for images
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith("http") || url.startsWith("data:")) return url;
+  const baseUrl = import.meta.env.VITE_API_URL || "https://hook.runasp.net";
+  return `${baseUrl}${url}`;
+};
 
 const NAV_LINKS = [
   { to: "/",        label: "Home" },
@@ -12,7 +20,6 @@ const NAV_LINKS = [
   { to: "/community",  label: "Community" },
 ];
 
-// Role-based dashboard routes
 const getDashboardLink = (role) => {
   switch (role) {
     case "Admin":
@@ -33,23 +40,16 @@ const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
   
   const { user } = useAuth();
-  // We extract cartItems now to render them in the dropdown
   const { cartItems, cartCount, cartTotal, removeFromCart } = useCart(); 
 
   const navbarRef = useRef(null);
   const logoRef = useRef(null);
   const linksRef = useRef([]);
 
-  // 1. Safely extract the primary role (handles both Arrays and Strings)
   const primaryRole = user?.role ? (Array.isArray(user.role) ? user.role[0] : user.role) : null;
-
-  // 2. Get dashboard link based on that extracted role
   const dashboardLink = user ? getDashboardLink(primaryRole) : null;
-  
-  // 3. Check if user has admin/seller/boatowner role using the extracted role
   const isSpecialRole = primaryRole && ["Admin", "Seller", "BoatOwner"].includes(primaryRole);
 
-  // Derive initials for avatar
   const getInitials = () => {
     if (!user?.name) return <User size={16} />;
     return user.name
@@ -62,7 +62,6 @@ const Navbar = () => {
 
   const initials = getInitials();
 
-  // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -72,7 +71,6 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -81,7 +79,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = "hidden";
@@ -192,18 +189,6 @@ const Navbar = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-5">
-            <motion.div
-              variants={itemVariants}
-              initial="initial"
-              animate="animate"
-              whileHover={!isMobile ? { scale: 1.1 } : {}}
-              whileTap={{ scale: 0.9 }}
-              className="relative"
-            >
-           
-   
-            </motion.div>
-
             {/* Shopping Cart - Only for regular users */}
             {!isSpecialRole && (
               <motion.div
@@ -214,9 +199,10 @@ const Navbar = () => {
                 onMouseEnter={() => !isMobile && setCartOpen(true)}
                 onMouseLeave={() => !isMobile && setCartOpen(false)}
               >
-                <div 
-                  className="flex items-center justify-center p-2 cursor-pointer text-[#a3cbf2]/60 hover:text-sky-100 transition-colors relative"
-                  onClick={() => setCartOpen(!cartOpen)}
+                <Link 
+                  to="/cart"
+                  className="flex items-center justify-center p-2 cursor-pointer text-[#a3cbf2]/60 hover:text-sky-400 transition-colors relative"
+                  onClick={() => setCartOpen(false)}
                 >
                   <ShoppingCart size={20} />
                   {/* Dynamic Cart Badge */}
@@ -226,13 +212,13 @@ const Navbar = () => {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        className="absolute top-0 right-0 w-4 h-4 bg-sky-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold"
+                        className="absolute -top-1 -right-1 w-4 h-4 bg-sky-500 border border-[#001526] rounded-full text-[10px] flex items-center justify-center text-white font-bold"
                       >
                         {cartCount}
                       </motion.span>
                     )}
                   </AnimatePresence>
-                </div>
+                </Link>
 
                 {/* Dropdown Container */}
                 <AnimatePresence>
@@ -246,8 +232,9 @@ const Navbar = () => {
                     >
                       {cartCount === 0 ? (
                         <div className="text-center py-6">
-                          <ShoppingCart size={32} className="mx-auto text-white/10 mb-2" />
-                          <p className="text-sm text-[#a3cbf2]/60">Your locker is empty</p>
+                          <ShoppingCart size={32} className="mx-auto text-white/10 mb-3" />
+                          <p className="text-sm font-medium text-[#cee5ff]">Your cart is empty</p>
+                          <p className="text-xs text-[#a3cbf2]/50 mt-1">Add items to get started</p>
                         </div>
                       ) : (
                         <div className="flex flex-col">
@@ -258,22 +245,31 @@ const Navbar = () => {
                           {/* Item List Preview */}
                           <div className="max-h-60 overflow-y-auto pr-1 space-y-3 mb-4 custom-scrollbar">
                             {cartItems.map((item) => (
-                              <div key={item.id} className="flex items-center gap-3 bg-[#001526] p-2 rounded-lg border border-white/5 group">
-                                <div className="w-12 h-12 bg-[#002238] rounded-md flex items-center justify-center text-xl shrink-0">
-                                  {item.emoji}
+                              <div key={item.id} className="flex items-center gap-3 bg-[#001526] p-2 rounded-xl border border-white/5 group">
+                                <div className="w-12 h-12 bg-[#002238] rounded-lg overflow-hidden border border-white/5 shrink-0 flex items-center justify-center">
+                                  {item.mainImageUrl || item.imageUrls?.[0] ? (
+                                    <img 
+                                      src={getImageUrl(item.mainImageUrl || item.imageUrls[0])} 
+                                      alt={item.title || item.name} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Package size={20} className="text-white/20" />
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-[#cee5ff] truncate">{item.name}</p>
-                                  <p className="text-xs text-[#a3cbf2]/60 mt-0.5">
-                                    {item.quantity} × <span className="text-sky-300">${item.price}</span>
+                                  <p className="text-sm font-semibold text-[#cee5ff] truncate">{item.title || item.name}</p>
+                                  <p className="text-xs font-medium text-[#a3cbf2]/60 mt-0.5">
+                                    {item.quantity} × <span className="text-sky-300">${item.price?.toFixed(2)}</span>
                                   </p>
                                 </div>
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    e.preventDefault();
                                     removeFromCart(item.id);
                                   }}
-                                  className="p-1.5 text-red-400/50 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                                  className="p-1.5 text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 rounded transition-colors"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -283,16 +279,16 @@ const Navbar = () => {
 
                           {/* Footer */}
                           <div className="border-t border-white/10 pt-3 flex flex-col gap-3">
-                            <div className="flex justify-between items-center text-sm">
+                            <div className="flex justify-between items-center text-sm font-bold">
                               <span className="text-[#a3cbf2]/60">Subtotal:</span>
-                              <span className="text-sky-400 font-bold tabular-nums">${cartTotal}</span>
+                              <span className="text-sky-400 tabular-nums">${cartTotal?.toFixed(2)}</span>
                             </div>
                             <Link 
                               to="/cart" 
                               onClick={() => setCartOpen(false)}
-                              className="w-full py-2.5 flex justify-center rounded-lg bg-sky-400 text-[#001526] font-bold text-sm shadow-[0_0_15px_rgba(83,214,251,0.2)] hover:shadow-[0_0_25px_rgba(83,214,251,0.4)] transition-all"
+                              className="w-full py-2.5 flex justify-center rounded-lg bg-sky-400 text-[#001526] font-bold text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(83,214,251,0.2)] hover:shadow-[0_0_25px_rgba(83,214,251,0.4)] transition-all"
                             >
-                              Review & Checkout
+                              Open Cart
                             </Link>
                           </div>
                         </div>

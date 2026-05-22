@@ -1,17 +1,10 @@
-// src/pages/SELLER_PAGES/OrdersPage.js
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Eye, ChevronDown, X, Loader2, AlertTriangle, Truck, Ban, CheckCircle } from "lucide-react";
+import { Eye, X, Loader2, AlertTriangle, Truck, Edit2 } from "lucide-react";
 import apiClient from "../../api/apiClient";
 import { toast } from 'react-hot-toast';
-
-const statusOptions = [
-  { value: 1, label: "Pending", icon: "⏳" },
-  { value: 2, label: "Out for Delivery", icon: "🚚" },
-  { value: 3, label: "Delivered", icon: "✅" },
-  { value: 4, label: "Cancelled", icon: "❌" }
-];
+import UpdateStatusModal, { getStatusIcon, getStatusLabel } from "../../components/SELLER_COMPONENTS/UpdateStatusModal";
 
 const statusStyles = {
   1: "bg-orange-400/10 text-orange-400 border-orange-400/20",
@@ -28,15 +21,9 @@ const paymentMethodMap = {
 
 const getCategoryName = (categoryId) => {
   const categories = {
-    1: "Fishing Rods",
-    2: "Fishing Reels",
-    3: "Fishing Lines",
-    4: "Hooks & Rigs",
-    5: "Lures & Baits",
-    6: "Fishing Accessories",
-    7: "Fishing Clothing",
-    8: "Snorkeling & Diving",
-    9: "Boats & Marine Equipment",
+    1: "Fishing Rods", 2: "Fishing Reels", 3: "Fishing Lines",
+    4: "Hooks & Rigs", 5: "Lures & Baits", 6: "Fishing Accessories",
+    7: "Fishing Clothing", 8: "Snorkeling & Diving", 9: "Boats & Marine Equipment",
     10: "Storage & Bags"
   };
   return categories[categoryId] || "Unknown";
@@ -53,9 +40,22 @@ const getImageUrl = (url) => {
   return `${baseUrl}${url}`;
 };
 
-// Confirm Cancel Modal Component
+// Confirm Cancel Modal Component with smooth animations
 const ConfirmCancelModal = ({ isOpen, onClose, onConfirm, orderId, isCancelling, errorMessage }) => {
   const [reason, setReason] = useState("");
+  const [render, setRender] = useState(isOpen);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRender(true);
+      setTimeout(() => setAnimate(true), 10);
+      setReason(""); // Reset reason field when opening
+    } else {
+      setAnimate(false);
+      setTimeout(() => setRender(false), 300);
+    }
+  }, [isOpen]);
 
   const handleConfirm = () => {
     if (!reason.trim()) {
@@ -65,12 +65,17 @@ const ConfirmCancelModal = ({ isOpen, onClose, onConfirm, orderId, isCancelling,
     onConfirm(orderId, reason);
   };
 
-  if (!isOpen) return null;
+  if (!render) return null;
 
-  // Render to document.body to prevent backdrop clipping
   return createPortal(
-    <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-[#001526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+    <div 
+      className={`fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 ${animate ? "opacity-100" : "opacity-0"}`}
+      onClick={onClose}
+    >
+      <div 
+        className={`relative w-full max-w-md bg-[#001526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 transform ${animate ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-rose-400/10 flex items-center justify-center">
@@ -115,11 +120,7 @@ const ConfirmCancelModal = ({ isOpen, onClose, onConfirm, orderId, isCancelling,
               disabled={isCancelling}
               className="flex-1 px-4 py-2 rounded-lg bg-rose-400/10 text-rose-400 border border-rose-400/20 hover:bg-rose-400/20 transition-all font-medium text-sm disabled:opacity-50"
             >
-              {isCancelling ? (
-                <Loader2 size={16} className="animate-spin mx-auto" />
-              ) : (
-                "Confirm Cancellation"
-              )}
+              {isCancelling ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Confirm Cancellation"}
             </button>
           </div>
         </div>
@@ -134,10 +135,12 @@ const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [animate, setAnimate] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null);
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
   
-  // Modal states
+  // Status Modal State
+  const [statusModal, setStatusModal] = useState({ isOpen: false, orderId: null, currentStatus: null });
+
+  // Order Details Modal states
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   
@@ -154,15 +157,9 @@ const OrdersPage = () => {
   }, []);
 
   useEffect(() => {
-    if (isModalVisible) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isModalVisible]);
+    document.body.style.overflow = (isModalVisible || statusModal.isOpen || cancelModal.isOpen) ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isModalVisible, statusModal.isOpen, cancelModal.isOpen]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -178,33 +175,28 @@ const OrdersPage = () => {
   };
 
   const updateOrderStatus = async (orderId, newStatus) => {
+    setStatusModal({ isOpen: false, orderId: null, currentStatus: null });
     setUpdatingOrderId(orderId);
+    
     try {
-      if (newStatus === 2) { // Out for Delivery
+      if (newStatus === 2) {
         await apiClient.patch(`/api/marketplace/orders/admin-seller/out-for-delivery/${orderId}`);
         toast.success("Order status updated to Out for Delivery");
-      } else if (newStatus === 4) { // Cancelled
-        // Open cancel modal instead of direct update
+      } else if (newStatus === 4) {
         setCancelModal({ isOpen: true, orderId });
         setUpdatingOrderId(null);
         return;
       } else {
-        // For other statuses, you might need additional endpoints
         toast.error("Status update not available for this status");
         setUpdatingOrderId(null);
         return;
       }
 
-      // Refresh orders after update
       await fetchOrders();
-      setOpenDropdown(null);
       
-      // Update selected order if modal is open
+      // Live update if Details Modal is open
       if (selectedOrder && selectedOrder.id === orderId) {
-        const updatedOrder = orders.find(o => o.id === orderId);
-        if (updatedOrder) {
-          setSelectedOrder({ ...updatedOrder, status: newStatus });
-        }
+        setSelectedOrder(prev => ({ ...prev, status: newStatus }));
       }
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -222,9 +214,7 @@ const OrdersPage = () => {
       toast.success("Order cancelled successfully");
       await fetchOrders();
       setCancelModal({ isOpen: false, orderId: null });
-      setOpenDropdown(null);
       
-      // Close order details modal if open
       if (selectedOrder && selectedOrder.id === orderId) {
         closeModal();
       }
@@ -253,13 +243,9 @@ const OrdersPage = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const formatOrderId = (id) => {
-    return `#${id.slice(0, 8).toUpperCase()}`;
-  };
+  const formatOrderId = (id) => `#${id.slice(0, 8).toUpperCase()}`;
 
-  const getCustomerName = (order) => {
-    return `${order.firstName || ''} ${order.lastName || ''}`.trim() || "Customer";
-  };
+  const getCustomerName = (order) => `${order.firstName || ''} ${order.lastName || ''}`.trim() || "Customer";
 
   if (loading) {
     return (
@@ -275,9 +261,7 @@ const OrdersPage = () => {
   return (
     <div className="space-y-6 w-full pb-12 px-3 sm:px-0">
       {/* Animated Header */}
-      <div className={`transform transition-all duration-700 ease-out ${
-        animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-      }`}>
+      <div className={`transform transition-all duration-700 ease-out ${animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}>
         <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Orders</h1>
         <p className="text-[#a3cbf2]/50 text-sm mt-1">Manage and track your customer orders</p>
       </div>
@@ -301,10 +285,7 @@ const OrdersPage = () => {
               <thead className="bg-[#001526] border-b border-white/10">
                 <tr>
                   {["Order ID", "Customer", "Total", "Status", "Date", ""].map((h, i) => (
-                    <th 
-                      key={h} 
-                      className={`text-left px-6 py-4 text-[#a3cbf2]/50 font-semibold text-xs uppercase tracking-wider ${i === 0 ? 'rounded-tl-2xl' : ''} ${i === 5 ? 'rounded-tr-2xl' : ''}`}
-                    >
+                    <th key={h} className={`text-left px-6 py-4 text-[#a3cbf2]/50 font-semibold text-xs uppercase tracking-wider ${i === 0 ? 'rounded-tl-2xl' : ''} ${i === 5 ? 'rounded-tr-2xl' : ''}`}>
                       {h}
                     </th>
                   ))}
@@ -312,58 +293,23 @@ const OrdersPage = () => {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr 
-                    key={order.id} 
-                    className={`border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors group`}
-                  >
+                  <tr key={order.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors group">
                     <td className="px-6 py-4 text-[#a3cbf2]/40 font-mono text-xs">{formatOrderId(order.id)}</td>
                     <td className="px-6 py-4 text-[#cee5ff] font-medium">{getCustomerName(order)}</td>
                     <td className="px-6 py-4 text-sky-400 font-bold">${order.total.toLocaleString()}</td>
                     <td className="px-6 py-4">
-                      <div className="relative">
-                        <button
-                          onClick={() => setOpenDropdown(openDropdown === order.id ? null : order.id)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border ${statusStyles[order.status] || statusStyles[1]}`}
-                          disabled={order.status === 3 || order.status === 4}
-                        >
-                          {statusOptions.find(s => s.value === order.status)?.label || "Unknown"}
-                          {order.status !== 3 && order.status !== 4 && (
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${openDropdown === order.id ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-
-                        {openDropdown === order.id && order.status !== 3 && order.status !== 4 && (
-                          <div className="absolute top-full left-0 mt-2 w-44 bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 z-50 animate-in fade-in zoom-in-95 duration-200">
-                            <div className="py-1">
-                              {statusOptions
-                                .filter(option => option.value > order.status && option.value !== 4)
-                                .map(option => (
-                                  <button
-                                    key={option.value}
-                                    onClick={() => updateOrderStatus(order.id, option.value)}
-                                    disabled={updatingOrderId === order.id}
-                                    className="w-full text-left px-4 py-2 text-xs font-bold transition-colors duration-200 hover:bg-white/5 text-[#a3cbf2]/70 hover:text-[#cee5ff] flex items-center gap-2"
-                                  >
-                                    <span>{option.icon}</span>
-                                    {option.label}
-                                    {updatingOrderId === order.id && <Loader2 size={12} className="animate-spin ml-auto" />}
-                                  </button>
-                                ))}
-                              {order.status === 1 && (
-                                <button
-                                  onClick={() => updateOrderStatus(order.id, 4)}
-                                  disabled={updatingOrderId === order.id}
-                                  className="w-full text-left px-4 py-2 text-xs font-bold transition-colors duration-200 hover:bg-white/5 text-rose-400 hover:text-rose-300 flex items-center gap-2"
-                                >
-                                  <Ban size={12} />
-                                  Cancel Order
-                                  {updatingOrderId === order.id && <Loader2 size={12} className="animate-spin ml-auto" />}
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                      {/* Interactive Badge acting as Update Button - Only clickable if Pending (1) */}
+                      <button
+                        onClick={() => setStatusModal({ isOpen: true, orderId: order.id, currentStatus: order.status })}
+                        disabled={order.status !== 1 || updatingOrderId === order.id}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border ${order.status === 1 ? 'hover:opacity-80 hover:scale-[1.02] cursor-pointer' : 'cursor-default'} ${statusStyles[order.status] || statusStyles[1]}`}
+                      >
+                        {updatingOrderId === order.id ? <Loader2 size={14} className="animate-spin" /> : getStatusIcon(order.status, 14)}
+                        <span>{getStatusLabel(order.status)}</span>
+                        {order.status === 1 && (
+                          <Edit2 size={12} className="ml-1 opacity-60" />
                         )}
-                      </div>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-[#a3cbf2]/40 text-xs">{formatDate(order.createdOn)}</td>
                     <td className="px-6 py-4 text-right">
@@ -387,15 +333,17 @@ const OrdersPage = () => {
             style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "100ms" }}
           >
             {orders.map((order) => (
-              <div 
-                key={order.id} 
-                className="bg-[#002238] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors"
-              >
+              <div key={order.id} className="bg-[#002238] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors">
                 <div className="flex items-start justify-between mb-2">
                   <p className="text-[#cee5ff] font-semibold text-sm">{formatOrderId(order.id)}</p>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusStyles[order.status] || statusStyles[1]}`}>
-                    {statusOptions.find(s => s.value === order.status)?.label || "Unknown"}
-                  </span>
+                  <button
+                    onClick={() => setStatusModal({ isOpen: true, orderId: order.id, currentStatus: order.status })}
+                    disabled={order.status !== 1}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${statusStyles[order.status] || statusStyles[1]}`}
+                  >
+                    {getStatusIcon(order.status, 12)}
+                    {getStatusLabel(order.status)}
+                  </button>
                 </div>
                 <p className="text-[#a3cbf2]/60 text-xs">{getCustomerName(order)}</p>
                 <div className="flex items-center justify-between mt-2">
@@ -414,18 +362,14 @@ const OrdersPage = () => {
         </>
       )}
       
-      {/* Order Details Modal Rendered via Portal */}
+      {/* Order Details Modal */}
       {selectedOrder && createPortal(
         <div 
-          className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 ${
-            isModalVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 ${isModalVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
           onClick={closeModal}
         >
           <div 
-            className={`bg-[#002238] border border-white/10 rounded-2xl flex flex-col max-w-md w-full shadow-2xl transition-all duration-300 transform max-h-[85vh] overflow-hidden ${
-              isModalVisible ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"
-            }`}
+            className={`bg-[#002238] border border-white/10 rounded-2xl flex flex-col max-w-md w-full shadow-2xl transition-all duration-300 transform max-h-[85vh] overflow-hidden ${isModalVisible ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed Modal Header */}
@@ -505,54 +449,22 @@ const OrdersPage = () => {
                 </div>
               )}
               
-              {selectedOrder.status !== 3 && selectedOrder.status !== 4 && (
-                <div className="relative">
+              {/* Trigger the Update Status Modal from Details - Only shown if status is Pending (1) */}
+              {selectedOrder.status === 1 && (
+                <div className="mt-4">
                   <label className="block text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2 font-medium">Update Status</label>
                   <button
-                    onClick={() => setOpenDropdown(openDropdown === 'modal' ? null : 'modal')}
-                    className="w-full bg-[#001526] border border-white/5 hover:border-sky-400/30 rounded-xl px-4 py-3 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/50 focus:ring-1 focus:ring-sky-400/20 transition-all duration-300 text-left flex justify-between items-center shadow-sm"
+                    onClick={() => setStatusModal({ isOpen: true, orderId: selectedOrder.id, currentStatus: selectedOrder.status })}
+                    className="w-full bg-[#001526] border border-white/5 hover:border-sky-400/30 rounded-xl px-4 py-3 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/50 transition-all duration-300 text-left flex justify-between items-center shadow-sm"
                   >
-                    <span className="font-medium">{statusOptions.find(s => s.value === selectedOrder.status)?.label}</span>
-                    <ChevronDown 
-                      size={16} 
-                      className={`text-[#a3cbf2]/40 transition-transform duration-300 ${openDropdown === 'modal' ? 'rotate-180 text-sky-400' : ''}`} 
-                    />
-                  </button>
-
-                  {openDropdown === 'modal' && (
-                    <div className="absolute bottom-full left-0 mb-2 w-full bg-[#001526] border border-white/10 rounded-xl shadow-xl shadow-black/50 z-50 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="py-1">
-                        {statusOptions
-                          .filter(option => option.value > selectedOrder.status && option.value !== 4)
-                          .map(option => (
-                            <button
-                              key={option.value}
-                              onClick={() => {
-                                updateOrderStatus(selectedOrder.id, option.value);
-                                setSelectedOrder({ ...selectedOrder, status: option.value });
-                                setOpenDropdown(null);
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 hover:bg-white/5 text-[#a3cbf2]/70 hover:text-[#cee5ff] flex items-center gap-2"
-                            >
-                              <span>{option.icon}</span>
-                              {option.label}
-                            </button>
-                          ))}
-                        {selectedOrder.status === 1 && (
-                          <button
-                            onClick={() => {
-                              setOpenDropdown(null);
-                              setCancelModal({ isOpen: true, orderId: selectedOrder.id });
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 hover:bg-white/5 text-rose-400 hover:text-rose-300 flex items-center gap-2"
-                          >
-                            <Ban size={14} />
-                            Cancel Order
-                          </button>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-2">
+                       <span className={statusStyles[selectedOrder.status] ? statusStyles[selectedOrder.status].split(' ')[1] : ''}>
+                          {getStatusIcon(selectedOrder.status, 18)}
+                       </span>
+                       <span className="font-medium">{getStatusLabel(selectedOrder.status)}</span>
                     </div>
-                  )}
+                    <Edit2 size={16} className="text-sky-400" />
+                  </button>
                 </div>
               )}
               
@@ -568,13 +480,19 @@ const OrdersPage = () => {
         document.body
       )}
 
+      {/* Global Status Update Modal */}
+      <UpdateStatusModal 
+        isOpen={statusModal.isOpen}
+        onClose={() => setStatusModal({ isOpen: false, orderId: null, currentStatus: null })}
+        currentStatus={statusModal.currentStatus}
+        onUpdate={(newStatus) => updateOrderStatus(statusModal.orderId, newStatus)}
+        isUpdating={updatingOrderId === statusModal.orderId}
+      />
+
       {/* Cancel Order Confirmation Modal */}
       <ConfirmCancelModal
         isOpen={cancelModal.isOpen}
-        onClose={() => {
-          setCancelModal({ isOpen: false, orderId: null });
-          setCancelError(null);
-        }}
+        onClose={() => { setCancelModal({ isOpen: false, orderId: null }); setCancelError(null); }}
         onConfirm={handleCancelOrder}
         orderId={cancelModal.orderId}
         isCancelling={isCancelling}
@@ -582,20 +500,10 @@ const OrdersPage = () => {
       />
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.02);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(163, 203, 242, 0.2);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(163, 203, 242, 0.4);
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(163, 203, 242, 0.2); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(163, 203, 242, 0.4); }
       `}</style>
     </div>
   );

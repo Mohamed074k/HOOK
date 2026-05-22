@@ -1,4 +1,3 @@
-// Router.jsx
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // ─── Auth guard ──────────────────────────────────────────────────────────────
@@ -21,10 +20,12 @@ import TripsPage from "./pages/APP_PAGES/TripsPage";
 import TripDetailsPage from "./pages/APP_PAGES/TripDetailsPage";
 import BookingPage from "./pages/APP_PAGES/BookingPage";
 import MarketplacePage from "./pages/APP_PAGES/MarketplacePage";
+import ProductDetailsPage from "./pages/APP_PAGES/ProductDetailsPage"; 
 import CommunityPage from "./pages/APP_PAGES/CommunityPage";
 import ProfilePage from "./pages/APP_PAGES/ProfilePage";
 import CartPage from "./pages/APP_PAGES/CartPage";
-
+import CheckoutPage from "./pages/APP_PAGES/CheckoutPage.jsx";
+ 
 // ─── Super Admin Pages ────────────────────────────────────────────────────────
 import SuperAdminDashboard from "./pages/SUPER_ADMIN_PAGES/SuperAdminDashboard";
 import UsersManagement from "./pages/SUPER_ADMIN_PAGES/UsersManagement";
@@ -43,10 +44,10 @@ import FishingGuidesManagement from "./pages/SUPER_ADMIN_PAGES/FishingGuidesMana
 import SellerDashboard from "./pages/SELLER_PAGES/SellerDashboard";
 import ProductsPage from "./pages/SELLER_PAGES/ProductsPage";
 import AddProductPage from "./pages/SELLER_PAGES/AddProductPage";
-import ProductDetailsPage from "./pages/SELLER_PAGES/ProductDetailsPage";
+import SellerProductDetailsPage from "./pages/SELLER_PAGES/SellerProductDetailsPage.jsx"; 
 import OrdersPage from "./pages/SELLER_PAGES/OrdersPage";
 import EarningsPage from "./pages/SELLER_PAGES/EarningsPage";
- import SellerSettingsPage from "./pages/SELLER_PAGES/SellerSettingsPage";
+import SellerSettingsPage from "./pages/SELLER_PAGES/SellerSettingsPage";
 
 // ─── Boat Owner Pages ──────────────────────────────────────────────────────
 import GuideDashboard from "./pages/BOAT_OWNER_PAGES/GuideDashboard";
@@ -88,9 +89,11 @@ const router = createBrowserRouter([
       { path: "trip/:id", element: <TripDetailsPage /> },
       { path: "trip/:id/book", element: <BookingPage /> },
       { path: "marketplace", element: <MarketplacePage /> },
+      { path: "marketplace/product/:id", element: <ProductDetailsPage /> }, 
       { path: "community", element: <CommunityPage /> },
       { path: "cart", element: <CartPage /> },
-      {
+      { path: "checkout", element: <CheckoutPage /> },
+       {
         path: "profile",
         element: (
           <ProtectedRoute allowedRoles={["User", "Admin", "Seller", "BoatOwner"]}>
@@ -130,10 +133,10 @@ const router = createBrowserRouter([
       { path: "products", element: <ProductsPage /> },
       { path: "products/add", element: <AddProductPage /> },
       { path: "products/edit/:id", element: <AddProductPage /> },
-      { path: "products/:id", element: <ProductDetailsPage /> },
+      { path: "products/:id", element: <SellerProductDetailsPage /> }, // Uses the renamed import
       { path: "orders", element: <OrdersPage /> },
       { path: "earnings", element: <EarningsPage /> },
-       { path: "settings", element: <SellerSettingsPage /> },
+      { path: "settings", element: <SellerSettingsPage /> },
     ],
   },
 

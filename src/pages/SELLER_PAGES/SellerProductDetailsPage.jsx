@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Package, Star, Loader2, Pencil } from "lucide-react";
 import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
-import ProductReviews from "./../../components/SELLER_COMPONENTS/ProductReviews";
+import ProductReviews from "../../components/SELLER_COMPONENTS/ProductReviews";
 
 const ProductDetailsPage = () => {
   const navigate = useNavigate();
