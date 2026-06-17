@@ -587,7 +587,7 @@ const SellersManagement = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => openDetailsModal(seller)}
-                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-white/5 text-[#cee5ff] hover:bg-white/10 text-sm font-medium transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-medium transition-all"
                   >
                     <Eye size={14} /> View Details
                   </button>

@@ -1,9 +1,10 @@
 // src/pages/USER_PAGES/components/SettingsTab.jsx
 import React, { useState, useEffect } from "react";
-import { User, Camera, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Camera, Lock, Eye, EyeOff, Anchor, Store, Clock, CheckCircle, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from 'react-hot-toast';
-
+import BoatOwnerApplicationModal from "./BoatOwnerApplicationModal"
+import SellerApplicationModal  from "./SellerApplicationModal"
 const getImageUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('data:')) return url;
@@ -11,8 +12,7 @@ const getImageUrl = (url) => {
   return `${baseUrl}${url}`;
 };
 
-const SettingsTab = ({ profile, updateProfile, changePassword }) => {
-  const [draft, setDraft] = useState({
+const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, sellerStatus, submitBoatOwnerApplication, submitSellerApplication }) => {  const [draft, setDraft] = useState({
     firstName: "", lastName: "", phoneNumber: "", governorate: "", bio: "", profilePicture: null, profilePicturePreview: null,
   });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
@@ -20,6 +20,9 @@ const SettingsTab = ({ profile, updateProfile, changePassword }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+ // Application modals state
+  const [showBoatOwnerModal, setShowBoatOwnerModal] = useState(false);
+  const [showSellerModal, setShowSellerModal] = useState(false);
 
   // Make the page always open at the top
   useEffect(() => {
@@ -296,6 +299,145 @@ const SettingsTab = ({ profile, updateProfile, changePassword }) => {
           Save Changes
         </motion.button>
       </div>
+      
+      {/* Upgrade Account Section */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        transition={{ delay: 0.25 }}
+        className="bg-[#002238] border border-white/5 rounded-2xl shadow-xl hover:border-white/10 transition-colors overflow-hidden"
+      >
+        <div className="p-6 border-b border-white/5">
+          <h3 className="text-lg font-bold text-[#cee5ff] flex items-center gap-2">
+            <Anchor size={18} className="text-sky-400" /> Upgrade Account
+          </h3>
+          <p className="text-xs text-[#a3cbf2]/60 mt-1">Expand your opportunities by becoming a boat owner or seller.</p>
+        </div>
+        
+        <div className="p-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Boat Owner Card */}
+            <div className="bg-[#001526]/50 rounded-xl p-5 border border-white/5 hover:border-sky-400/30 transition-all group flex flex-col">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-full bg-sky-400/10 flex items-center justify-center border border-sky-400/20 group-hover:scale-110 transition-transform">
+                  <Anchor size={24} className="text-sky-400" />
+                </div>
+                {profile?.boatOwnerStatus === 1 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-400/10 border border-amber-400/20">
+                    <Clock size={12} className="text-amber-400" />
+                    <span className="text-xs font-medium text-amber-400">Pending</span>
+                  </div>
+                ) : profile?.boatOwnerStatus === 2 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
+                    <CheckCircle size={12} className="text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-400">Approved</span>
+                  </div>
+                ) : profile?.boatOwnerStatus === 3 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-rose-400/10 border border-rose-400/20">
+                    <XCircle size={12} className="text-rose-400" />
+                    <span className="text-xs font-medium text-rose-400">Rejected</span>
+                  </div>
+                ) : null}
+              </div>
+              
+              <h4 className="text-lg font-bold text-[#cee5ff] mb-2">Boat Owner</h4>
+              <p className="text-sm text-[#a3cbf2]/70 mb-4 leading-relaxed">
+                List your boats, manage trips, and connect with adventurers. Start earning by offering unforgettable sea experiences.
+              </p>
+              
+              {/* Added mt-auto here to push the button to the bottom */}
+              <div className="mt-auto w-full">
+                {!profile?.boatOwnerStatus || profile?.boatOwnerStatus === 3 ? (
+                  <motion.button
+                    onClick={() => setShowBoatOwnerModal(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold bg-sky-400/10 text-sky-400 border border-sky-400/20 hover:bg-sky-400/20 transition-all"
+                  >
+                    Apply Now
+                  </motion.button>
+                ) : profile?.boatOwnerStatus === 1 ? (
+                  <button disabled className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-400/5 text-amber-400/50 border border-amber-400/10 cursor-not-allowed">
+                    Application Under Review
+                  </button>
+                ) : profile?.boatOwnerStatus === 2 ? (
+                  <button disabled className="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-400/5 text-emerald-400/50 border border-emerald-400/10 cursor-not-allowed">
+                    Already a Boat Owner
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Seller Card */}
+            <div className="bg-[#001526]/50 rounded-xl p-5 border border-white/5 hover:border-emerald-400/30 transition-all group flex flex-col">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-400/10 flex items-center justify-center border border-emerald-400/20 group-hover:scale-110 transition-transform">
+                  <Store size={24} className="text-emerald-400" />
+                </div>
+                {profile?.sellerStatus === 1 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-400/10 border border-amber-400/20">
+                    <Clock size={12} className="text-amber-400" />
+                    <span className="text-xs font-medium text-amber-400">Pending</span>
+                  </div>
+                ) : profile?.sellerStatus === 2 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
+                    <CheckCircle size={12} className="text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-400">Approved</span>
+                  </div>
+                ) : profile?.sellerStatus === 3 ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-rose-400/10 border border-rose-400/20">
+                    <XCircle size={12} className="text-rose-400" />
+                    <span className="text-xs font-medium text-rose-400">Rejected</span>
+                  </div>
+                ) : null}
+              </div>
+              
+              <h4 className="text-lg font-bold text-[#cee5ff] mb-2">Seller</h4>
+              <p className="text-sm text-[#a3cbf2]/70 mb-4 leading-relaxed">
+                Sell fishing gear, equipment, and accessories. Reach thousands of passionate anglers in our marketplace.
+              </p>
+              
+              {/* Added mt-auto here to push the button to the bottom */}
+              <div className="mt-auto w-full">
+                {!profile?.sellerStatus || profile?.sellerStatus === 3 ? (
+                  <motion.button
+                    onClick={() => setShowSellerModal(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/20 transition-all"
+                  >
+                    Apply Now
+                  </motion.button>
+                ) : profile?.sellerStatus === 1 ? (
+                  <button disabled className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-400/5 text-amber-400/50 border border-amber-400/10 cursor-not-allowed">
+                    Application Under Review
+                  </button>
+                ) : profile?.sellerStatus === 2 ? (
+                  <button disabled className="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-400/5 text-emerald-400/50 border border-emerald-400/10 cursor-not-allowed">
+                    Already a Seller
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+ 
+
+            {/* Boat Owner Application Modal */}
+      <BoatOwnerApplicationModal
+        isOpen={showBoatOwnerModal}
+        onClose={() => setShowBoatOwnerModal(false)}
+        onSubmit={submitBoatOwnerApplication}
+      />
+
+      {/* Seller Application Modal */}
+      <SellerApplicationModal
+        isOpen={showSellerModal}
+        onClose={() => setShowSellerModal(false)}
+        onSubmit={submitSellerApplication}
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
+import Breadcrumb from "../../components/APP_COMPONENTS/Breadcrumb"; 
 
 // Helper for images
 const getImageUrl = (url) => {
@@ -100,15 +101,14 @@ const CartPage = () => {
     <div ref={pageRef} className="relative min-h-screen px-4 md:px-8 py-6 md:py-10 text-[#cee5ff] max-w-7xl mx-auto">
       <AnimatedBackground />
 
+      {/* Breadcrumb - Added here instead of back button */}
+      <div className="mb-6">
+        <Breadcrumb />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8 m-cart-title">
         <div>
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-[#a3cbf2]/60 hover:text-sky-400 transition-colors mb-4 text-sm font-medium"
-          >
-            <ArrowLeft size={16} /> Back to Shopping
-          </button>
           <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent">
             Your Cart
           </h1>

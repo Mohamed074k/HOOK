@@ -8,6 +8,7 @@ import AppLayout from "./layouts/AppLayout";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
 import SellerLayout from "./layouts/SellerLayout";
 import BoatOwnerLayout from "./layouts/BoatOwnerLayout";
+import CommunityAdminLayout from "./layouts/CommunityAdminLayout"; 
 
 // ─── Shared Pages ─────────────────────────────────────────────────────────────
 import NotFoundPage from "./pages/NotFoundPage";
@@ -22,6 +23,7 @@ import BookingPage from "./pages/APP_PAGES/BookingPage";
 import MarketplacePage from "./pages/APP_PAGES/MarketplacePage";
 import ProductDetailsPage from "./pages/APP_PAGES/ProductDetailsPage"; 
 import CommunityPage from "./pages/APP_PAGES/CommunityPage";
+import CommunityProfilePage from "./pages/APP_PAGES/CommunityProfilePage";
 import ProfilePage from "./pages/APP_PAGES/ProfilePage";
 import CartPage from "./pages/APP_PAGES/CartPage";
 import CheckoutPage from "./pages/APP_PAGES/CheckoutPage.jsx";
@@ -39,6 +41,12 @@ import AnalyticsPage from "./pages/SUPER_ADMIN_PAGES/AnalyticsPage";
 import AdminSettingsPage from "./pages/SUPER_ADMIN_PAGES/AdminSettingsPage";
 import SellersManagement from "./pages/SUPER_ADMIN_PAGES/SellersManagement";
 import FishingGuidesManagement from "./pages/SUPER_ADMIN_PAGES/FishingGuidesManagement";
+
+// ─── Community Admin Pages ────────────────────────────────────────────────────
+import ComplaintsManagement from "./pages/COMMUNITY_ADMIN_PAGES/ComplaintsManagement"; 
+import ProhibitedPlaces from "./pages/COMMUNITY_ADMIN_PAGES/ProhibitedPlaces";
+import ProhibitedTools from "./pages/COMMUNITY_ADMIN_PAGES/ProhibitedTools";
+import ProhibitedSeasons from "./pages/COMMUNITY_ADMIN_PAGES/ProhibitedSeasons";
 
 // ─── Seller Pages ─────────────────────────────────────────────────────────────
 import SellerDashboard from "./pages/SELLER_PAGES/SellerDashboard";
@@ -90,13 +98,17 @@ const router = createBrowserRouter([
       { path: "trip/:id/book", element: <BookingPage /> },
       { path: "marketplace", element: <MarketplacePage /> },
       { path: "marketplace/product/:id", element: <ProductDetailsPage /> }, 
+      
+      // Community Routes
       { path: "community", element: <CommunityPage /> },
+      { path: "community/profile/:userId", element: <CommunityProfilePage /> }, 
+      
       { path: "cart", element: <CartPage /> },
       { path: "checkout", element: <CheckoutPage /> },
-       {
+      {
         path: "profile",
         element: (
-          <ProtectedRoute allowedRoles={["User", "Admin", "Seller", "BoatOwner"]}>
+          <ProtectedRoute allowedRoles={["User", "Admin", "CommunityAdmin", "Seller", "BoatOwner"]}>
             <ProfilePage />
           </ProtectedRoute>
         ),
@@ -124,6 +136,18 @@ const router = createBrowserRouter([
     ],
   },
 
+  // ── Community Admin Routes ─────────────────────────────────────────────────
+  {
+    path: "/community-admin",
+    element: <DashboardRoute element={<CommunityAdminLayout />} requiredRole="CommunityAdmin" />,
+    children: [
+      { index: true, element: <ComplaintsManagement /> },
+      { path: "prohibited-places", element: <ProhibitedPlaces /> },
+      { path: "prohibited-tools", element: <ProhibitedTools /> },
+      { path: "prohibited-seasons", element: <ProhibitedSeasons /> },
+    ],
+  },
+
   // ── Seller Routes ──────────────────────────────────────────────────────────
   {
     path: "/seller",
@@ -133,7 +157,7 @@ const router = createBrowserRouter([
       { path: "products", element: <ProductsPage /> },
       { path: "products/add", element: <AddProductPage /> },
       { path: "products/edit/:id", element: <AddProductPage /> },
-      { path: "products/:id", element: <SellerProductDetailsPage /> }, // Uses the renamed import
+      { path: "products/:id", element: <SellerProductDetailsPage /> },
       { path: "orders", element: <OrdersPage /> },
       { path: "earnings", element: <EarningsPage /> },
       { path: "settings", element: <SellerSettingsPage /> },

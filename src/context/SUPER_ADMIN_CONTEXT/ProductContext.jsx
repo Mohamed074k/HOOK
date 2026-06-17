@@ -1,3 +1,4 @@
+// src/context/SUPER_ADMIN_CONTEXT/ProductContext.jsx
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import apiClient from "../../api/apiClient";
 import { toast } from 'react-hot-toast';
@@ -34,12 +35,7 @@ export const SuperAdminProductProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const { data } = await apiClient.get("/api/marketplace/products/allroles/search", {
-        params: {
-          PageSize: 100,
-          PageNumber: 1
-        }
-      });
+      const { data } = await apiClient.get("/api/marketplace/admin/products/GetAll");
       setProducts(data || []);
     } catch (err) {
       console.error("Fetch products error:", err);
@@ -70,7 +66,7 @@ export const SuperAdminProductProvider = ({ children }) => {
     }
 
     try {
-      await apiClient.delete(`/api/marketplace/seller/products/seller/delete/${productId}`);
+      await apiClient.delete(`/api/marketplace/admin/products/delete/${productId}`);
       setProducts(prev => prev.filter(p => p.id !== productId));
       toast.success("Product deleted successfully");
     } catch (err) {

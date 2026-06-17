@@ -38,6 +38,7 @@ const cardVariants = {
 // ─── Role → default dashboard path ───────────────────────────────────────────
 const ROLE_ROUTES = {
   Admin: "/super-admin",
+  CommunityAdmin: "/community-admin", 
   Seller: "/seller",
   BoatOwner: "/boat-owner",
   User: "/",
@@ -197,20 +198,7 @@ const LoginPage = () => {
 
             {/* Password */}
             <motion.div className="relative w-full" variants={itemVariants}>
-              {/* Forgot password */}
-              <motion.div
-                className="absolute -top-5 right-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Link
-                  to="/forgot-password"
-                  className="text-[10px] text-[#53D6FB] font-semibold tracking-widest uppercase hover:text-[#7AE3FF] transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </motion.div>
+     
 
               <div className="relative">
                 <input

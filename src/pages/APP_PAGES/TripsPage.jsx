@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/TripsPage.jsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +9,7 @@ import {
 import gsap from "gsap";
 import apiClient from "../../api/apiClient";
 import { toast } from 'react-hot-toast';
+import Breadcrumb from "../../components/APP_COMPONENTS/Breadcrumb"; 
 
 // ─── Skeleton Loading Component ───────────────────────────────────────────────
 const TripCardSkeleton = () => (
@@ -129,7 +129,7 @@ const FilterPanel = ({ filters, setFilters, sortBy, setSortBy, isOpen, setIsOpen
   const hasActiveFilters = filters.locationName !== "" || filters.minPrice > 0 || filters.maxPrice < 6000;
 
   return (
-    <motion.div className="relative z-20">
+    <div className="relative z-20">
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#002238] border border-white/5 text-[#a3cbf2] text-sm font-medium hover:border-white/10 transition-all shadow-sm"
@@ -222,7 +222,7 @@ const FilterPanel = ({ filters, setFilters, sortBy, setSortBy, isOpen, setIsOpen
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
@@ -484,7 +484,7 @@ const TripCard = ({ trip, index, isLoading }) => {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sky-400 font-bold text-xl">${trip.pricePerPerson}</span>
+              <span className="text-sky-400 font-bold text-xl">{trip.pricePerPerson} L.E</span>
               <span className="text-xs text-[#a3cbf2]/40 font-normal"> /person</span>
             </div>
           </div>
@@ -705,6 +705,11 @@ const TripsPage = () => {
       
       <div className="space-y-6 pb-12 max-w-7xl mx-auto relative pt-8 px-4 md:px-8 min-h-screen bg-[#001526] text-[#cee5ff]">
         <AnimatedBackground />
+        
+        {/* Breadcrumb - Added here before HeroSection */}
+        <div className="mb-4">
+          <Breadcrumb />
+        </div>
         
         <HeroSection />
         

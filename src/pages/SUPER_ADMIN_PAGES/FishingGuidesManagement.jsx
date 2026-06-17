@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, MoreHorizontal, Eye, CheckCircle, XCircle, Trash2, Loader2, RefreshCw, UserCheck, UserX, FileText } from "lucide-react";
+import { X, Search, MoreHorizontal, Eye, CheckCircle, XCircle, Trash2, Loader2, RefreshCw, UserCheck, UserX, FileText, AlertTriangle } from "lucide-react";
 import apiClient from "../../api/apiClient";
 import { toast } from 'react-hot-toast';
 
@@ -47,6 +47,203 @@ const ConfirmModal = ({ isOpen, title, text, onConfirm, onCancel, confirmText = 
   </AnimatePresence>
 );
 
+// Reject Modal with Reason
+const RejectModal = ({ isOpen, guideName, onConfirm, onCancel, isProcessing }) => {
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setRejectionReason("");
+    }
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }} 
+          className="fixed inset-0 z-50 bg-[#001526]/80 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="w-full max-w-md bg-[#002238] border border-white/10 rounded-2xl p-6 shadow-2xl"
+          >
+            <h3 className="text-lg font-bold text-[#cee5ff] mb-2">Reject Boat Owner</h3>
+            <p className="text-sm text-[#a3cbf2]/70 mb-4">
+              Please provide a reason for rejecting <span className="text-rose-400">{guideName}</span>
+            </p>
+            
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter rejection reason..."
+              className="w-full bg-[#001526] border border-white/10 rounded-xl p-3 text-sm text-[#cee5ff] placeholder:text-[#a3cbf2]/30 focus:outline-none focus:border-rose-400/50 resize-none h-28 mb-4"
+              autoFocus
+            />
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={onCancel} 
+                className="flex-1 py-2 rounded-xl text-sm font-semibold bg-white/[0.04] text-[#a3cbf2] hover:bg-white/[0.08] transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => onConfirm(rejectionReason)} 
+                disabled={isProcessing || !rejectionReason.trim()}
+                className="flex-1 py-2 rounded-xl text-sm font-semibold bg-rose-400/15 text-rose-300 hover:bg-rose-400/25 border border-rose-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isProcessing ? <Loader2 size={16} className="animate-spin" /> : null}
+                Confirm Rejection
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Guide Details Modal
+const GuideDetailsModal = ({ guide, isOpen, onClose }) => {
+  if (!guide) return null;
+
+  const statusText = {
+    1: "Pending",
+    2: "Active",
+    3: "Rejected",
+    4: "Suspended"
+  }[guide.status] || "Unknown";
+
+  const statusColor = {
+    1: "text-yellow-400",
+    2: "text-sky-400",
+    3: "text-rose-400",
+    4: "text-red-400"
+  }[guide.status] || "text-[#a3cbf2]/50";
+
+  const getStatusStyle = (status) => {
+    const styleMap = {
+      1: "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
+      2: "bg-sky-400/10 text-sky-400 border-sky-400/20",
+      3: "bg-rose-400/10 text-rose-400 border-rose-400/20",
+      4: "bg-red-400/10 text-red-400 border-red-400/20",
+    };
+    return styleMap[status] || "bg-[#a3cbf2]/10 text-[#a3cbf2]/50 border-white/10";
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    const baseUrl = 'https://hook.runasp.net';
+    return `${baseUrl}${url}`;
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }} 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="w-full max-w-2xl bg-[#002238] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10">
+              <h3 className="text-xl font-bold text-[#cee5ff]">Boat Owner Details</h3>
+              <button onClick={onClose} className="p-2 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Full Name</p>
+                  <p className="text-[#cee5ff] font-medium">{guide.fullName}</p>
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Email</p>
+                  <p className="text-[#cee5ff] font-medium">{guide.email}</p>
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5 flex flex-col items-start">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">National ID</p>
+                  <p className="text-[#cee5ff] font-medium mb-3">{guide.nationalIdNumber}</p>
+                  {guide.nationalIdPhotoUrl && (
+                    <button
+                      onClick={() => window.open(getImageUrl(guide.nationalIdPhotoUrl), '_blank')}
+                      className="mt-auto flex items-center gap-1.5 px-3 py-1.5 bg-sky-500/10 border border-sky-500/20 rounded-lg text-xs font-medium text-sky-400 hover:bg-sky-500/20 transition-all"
+                    >
+                      <Eye size={12} /> View ID Photo
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5 flex flex-col items-start">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Boat License</p>
+                  <p className="text-[#cee5ff] font-medium mb-3">{guide.boatLicenseNumber}</p>
+                  {guide.boatLicensePhotoUrl && (
+                    <button
+                      onClick={() => window.open(getImageUrl(guide.boatLicensePhotoUrl), '_blank')}
+                      className="mt-auto flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-xs font-medium text-indigo-400 hover:bg-indigo-500/20 transition-all"
+                    >
+                      <Eye size={12} /> View License Photo
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">InstaPay Number</p>
+                  <p className="text-[#cee5ff] font-medium">{guide.instaPayNumber || "N/A"}</p>
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Vodafone Cash</p>
+                  <p className="text-[#cee5ff] font-medium">{guide.vodafoneCashNumber || "N/A"}</p>
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Status</p>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-block ${getStatusStyle(guide.status)}`}>
+                    {statusText}
+                  </span>
+                </div>
+                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
+                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Joined On</p>
+                  <p className="text-[#cee5ff] font-medium">{new Date(guide.createdOn).toLocaleString()}</p>
+                </div>
+              </div>
+              
+              {guide.adminRejectionReason && (
+                <div className="p-4 bg-rose-400/10 rounded-xl border border-rose-400/20">
+                  <p className="text-rose-400 text-xs uppercase tracking-wider mb-2">Rejection Reason</p>
+                  <p className="text-[#cee5ff] text-sm">{guide.adminRejectionReason}</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 pt-0">
+              <button 
+                onClick={onClose} 
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 text-white text-sm font-bold hover:shadow-lg transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 // Status mapping for API values (1 = Pending, 2 = Approved, 3 = Rejected, 4 = Suspended)
 const getStatusText = (status) => {
   const statusMap = {
@@ -91,10 +288,16 @@ const FishingGuidesManagement = () => {
   // Confirm modal states
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
-    type: null, // 'approve', 'reject', 'suspend', 'delete', 'restore'
+    type: null, // 'approve', 'delete'
     guideId: null,
-    guideName: "",
-    rejectionReason: ""
+    guideName: ""
+  });
+  
+  // Reject modal state
+  const [rejectModal, setRejectModal] = useState({
+    isOpen: false,
+    guideId: null,
+    guideName: ""
   });
 
   useEffect(() => {
@@ -135,15 +338,15 @@ const FishingGuidesManagement = () => {
         isApproved,
         rejectionReason
       });
-      toast.success(`Guide ${isApproved ? 'approved' : 'rejected'} successfully`);
+      toast.success(`Boat Owner ${isApproved ? 'approved' : 'rejected'} successfully`);
       fetchGuides();
       fetchDeletedGuides();
     } catch (error) {
-      console.error("Error updating guide status:", error);
-      toast.error("Failed to update guide status");
+      console.error("Error updating boat owner status:", error);
+      const errorMessage = error.response?.data?.description || error.response?.data?.message || "Failed to update boat owner status";
+      toast.error(errorMessage);
     } finally {
       setActionLoading(null);
-      setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "", rejectionReason: "" });
     }
   };
 
@@ -151,7 +354,7 @@ const FishingGuidesManagement = () => {
     setActionLoading(id);
     try {
       await apiClient.delete(`/api/BoatOwner/admin/delete/${id}`);
-      toast.success("Guide deleted successfully");
+      toast.success("Boat Owner deleted successfully");
       fetchGuides();
       fetchDeletedGuides();
     } catch (error) {
@@ -159,32 +362,56 @@ const FishingGuidesManagement = () => {
       toast.error("Failed to delete guide");
     } finally {
       setActionLoading(null);
-      setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "", rejectionReason: "" });
+      setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "" });
     }
   };
 
-  const openConfirmModal = (type, guide) => {
+  const openApproveModal = (guide) => {
     setConfirmModal({
       isOpen: true,
-      type,
+      type: 'approve',
       guideId: guide.id,
-      guideName: guide.fullName,
-      rejectionReason: ""
+      guideName: guide.fullName
     });
   };
 
+  const openRejectModal = (guide) => {
+    setRejectModal({
+      isOpen: true,
+      guideId: guide.id,
+      guideName: guide.fullName
+    });
+  };
+
+  const openDeleteModal = (guide) => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'delete',
+      guideId: guide.id,
+      guideName: guide.fullName
+    });
+  };
+
+  const handleConfirmApprove = async () => {
+    await updateGuideStatus(confirmModal.guideId, true, null);
+    setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "" });
+  };
+
+  const handleConfirmReject = async (rejectionReason) => {
+    await updateGuideStatus(rejectModal.guideId, false, rejectionReason);
+    setRejectModal({ isOpen: false, guideId: null, guideName: "" });
+  };
+
+  const handleConfirmDelete = async () => {
+    await deleteGuide(confirmModal.guideId);
+    setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "" });
+  };
+
   const handleConfirmAction = () => {
-    const { type, guideId, rejectionReason } = confirmModal;
-    switch (type) {
-      case 'approve':
-        updateGuideStatus(guideId, true);
-        break;
-      case 'reject':
-        updateGuideStatus(guideId, false, rejectionReason);
-        break;
-      case 'delete':
-        deleteGuide(guideId);
-        break;
+    if (confirmModal.type === 'approve') {
+      handleConfirmApprove();
+    } else if (confirmModal.type === 'delete') {
+      handleConfirmDelete();
     }
   };
 
@@ -222,7 +449,7 @@ const FishingGuidesManagement = () => {
         style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(-20px)" }}
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Fishing Guides Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Boat Owners Management</h1>
           <p className="text-[#a3cbf2]/50 text-sm mt-1">Manage boat owners and fishing guides</p>
         </div>
         <div className="flex gap-2">
@@ -241,7 +468,7 @@ const FishingGuidesManagement = () => {
         </div>
       </div>
 
-      {/* Adjusted Search Bar matching the image */}
+      {/* Search Bar */}
       <div 
         className="w-full max-w-2xl transform transition-all duration-700 ease-out"
         style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "100ms" }}
@@ -346,7 +573,7 @@ const FishingGuidesManagement = () => {
                           {!showDeleted && guide.status === 1 && (
                             <>
                               <button
-                                onClick={() => openConfirmModal('approve', guide)}
+                                onClick={() => openApproveModal(guide)}
                                 disabled={actionLoading === guide.id}
                                 className="p-2 rounded-lg text-emerald-400/30 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all"
                                 title="Approve Guide"
@@ -354,7 +581,7 @@ const FishingGuidesManagement = () => {
                                 {actionLoading === guide.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                               </button>
                               <button
-                                onClick={() => openConfirmModal('reject', guide)}
+                                onClick={() => openRejectModal(guide)}
                                 disabled={actionLoading === guide.id}
                                 className="p-2 rounded-lg text-rose-400/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all"
                                 title="Reject Guide"
@@ -366,7 +593,7 @@ const FishingGuidesManagement = () => {
                           
                           {!showDeleted && guide.status === 2 && (
                             <button
-                              onClick={() => openConfirmModal('delete', guide)}
+                              onClick={() => openDeleteModal(guide)}
                               disabled={actionLoading === guide.id}
                               className="p-2 rounded-lg text-rose-400/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all"
                               title="Delete Guide"
@@ -381,7 +608,7 @@ const FishingGuidesManagement = () => {
                 })
               )}
             </tbody>
-           </table>
+          </table>
         </div>
       </div>
 
@@ -448,7 +675,7 @@ const FishingGuidesManagement = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => openDetailsModal(guide)}
-                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-white/5 text-[#cee5ff] hover:bg-white/10 text-sm font-medium transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-medium transition-all"
                   >
                     <Eye size={14} /> View Details
                   </button>
@@ -456,13 +683,13 @@ const FishingGuidesManagement = () => {
                   {!showDeleted && guide.status === 1 && (
                     <>
                       <button
-                        onClick={() => openConfirmModal('approve', guide)}
+                        onClick={() => openApproveModal(guide)}
                         className="flex items-center justify-center px-3 py-2 rounded-xl bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-all"
                       >
                         <CheckCircle size={14} />
                       </button>
                       <button
-                        onClick={() => openConfirmModal('reject', guide)}
+                        onClick={() => openRejectModal(guide)}
                         className="flex items-center justify-center px-3 py-2 rounded-xl bg-rose-400/10 text-rose-400 hover:bg-rose-400/20 transition-all"
                       >
                         <XCircle size={14} />
@@ -472,7 +699,7 @@ const FishingGuidesManagement = () => {
                   
                   {!showDeleted && guide.status === 2 && (
                     <button
-                      onClick={() => openConfirmModal('delete', guide)}
+                      onClick={() => openDeleteModal(guide)}
                       className="flex items-center justify-center px-3 py-2 rounded-xl bg-rose-400/10 text-rose-400 hover:bg-rose-400/20 transition-all"
                     >
                       <Trash2 size={14} />
@@ -486,114 +713,34 @@ const FishingGuidesManagement = () => {
       </div>
 
       {/* Guide Details Modal */}
-      {selectedGuide && (
-        <div 
-          className={`fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 ${isDetailsModalOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-          onClick={closeDetailsModal}
-        >
-          <div 
-            className={`bg-[#002238] border border-white/10 rounded-2xl max-w-2xl w-full shadow-2xl transition-all duration-300 transform ${isDetailsModalOpen ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10">
-              <h3 className="text-[#cee5ff] font-bold text-xl">Guide Details</h3>
-              <button onClick={closeDetailsModal} className="p-2 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Full Name</p>
-                  <p className="text-[#cee5ff] font-medium">{selectedGuide.fullName}</p>
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Email</p>
-                  <p className="text-[#cee5ff] font-medium">{selectedGuide.email}</p>
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5 flex flex-col items-start">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">National ID</p>
-                  <p className="text-[#cee5ff] font-medium mb-3">{selectedGuide.nationalIdNumber}</p>
-                  {selectedGuide.nationalIdPhotoUrl && (
-                    <button
-                      onClick={() => window.open(getImageUrl(selectedGuide.nationalIdPhotoUrl), '_blank')}
-                      className="mt-auto flex items-center gap-1.5 px-3 py-1.5 bg-sky-500/10 border border-sky-500/20 rounded-lg text-xs font-medium text-sky-400 hover:bg-sky-500/20 transition-all"
-                    >
-                      <Eye size={12} /> View ID Photo
-                    </button>
-                  )}
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5 flex flex-col items-start">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Boat License</p>
-                  <p className="text-[#cee5ff] font-medium mb-3">{selectedGuide.boatLicenseNumber}</p>
-                  {selectedGuide.boatLicensePhotoUrl && (
-                    <button
-                      onClick={() => window.open(getImageUrl(selectedGuide.boatLicensePhotoUrl), '_blank')}
-                      className="mt-auto flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-xs font-medium text-indigo-400 hover:bg-indigo-500/20 transition-all"
-                    >
-                      <Eye size={12} /> View License Photo
-                    </button>
-                  )}
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">InstaPay Number</p>
-                  <p className="text-[#cee5ff] font-medium">{selectedGuide.instaPayNumber || "N/A"}</p>
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Vodafone Cash</p>
-                  <p className="text-[#cee5ff] font-medium">{selectedGuide.vodafoneCashNumber || "N/A"}</p>
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Status</p>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-block ${getStatusStyle(selectedGuide.status)}`}>
-                    {getStatusText(selectedGuide.status)}
-                  </span>
-                </div>
-                <div className="p-4 bg-[#001526] rounded-xl border border-white/5">
-                  <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-2">Joined On</p>
-                  <p className="text-[#cee5ff] font-medium">{new Date(selectedGuide.createdOn).toLocaleString()}</p>
-                </div>
-              </div>
-              
-              {selectedGuide.adminRejectionReason && (
-                <div className="p-4 bg-rose-400/10 rounded-xl border border-rose-400/20">
-                  <p className="text-rose-400 text-xs uppercase tracking-wider mb-2">Rejection Reason</p>
-                  <p className="text-[#cee5ff] text-sm">{selectedGuide.adminRejectionReason}</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="p-6 pt-0 flex gap-3">
-              <button onClick={closeDetailsModal} className="flex-1 py-3 rounded-xl bg-white/[0.04] text-[#a3cbf2] text-sm font-bold hover:bg-white/[0.08] transition-all">
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GuideDetailsModal
+        guide={selectedGuide}
+        isOpen={isDetailsModalOpen}
+        onClose={closeDetailsModal}
+      />
 
-      {/* Confirmation Modal */}
+      {/* Confirm Modal (Approve/Delete) */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        title={
-          confirmModal.type === 'approve' ? "Approve Guide" :
-          confirmModal.type === 'reject' ? "Reject Guide" :
-          "Delete Guide"
-        }
+        title={confirmModal.type === 'approve' ? "Approve Boat Owner" : "Delete Boat Owner"}
         text={
-          confirmModal.type === 'approve' ? `Are you sure you want to approve "${confirmModal.guideName}"? They will be able to manage boats and trips.` :
-          confirmModal.type === 'reject' ? `Are you sure you want to reject "${confirmModal.guideName}"? They will not be able to access the platform.` :
-          `Are you sure you want to delete "${confirmModal.guideName}"? This action cannot be undone.`
+          confirmModal.type === 'approve' 
+            ? `Are you sure you want to approve "${confirmModal.guideName}"? They will be able to manage boats and trips.`
+            : `Are you sure you want to delete "${confirmModal.guideName}"? This action cannot be undone.`
         }
         onConfirm={handleConfirmAction}
-        onCancel={() => setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "", rejectionReason: "" })}
-        confirmText={
-          confirmModal.type === 'approve' ? "Approve" :
-          confirmModal.type === 'reject' ? "Reject" :
-          "Delete"
-        }
-        isDanger={confirmModal.type !== 'approve'}
+        onCancel={() => setConfirmModal({ isOpen: false, type: null, guideId: null, guideName: "" })}
+        confirmText={confirmModal.type === 'approve' ? "Approve" : "Delete"}
+        isDanger={confirmModal.type === 'delete'}
+      />
+
+      {/* Reject Modal with Reason */}
+      <RejectModal
+        isOpen={rejectModal.isOpen}
+        guideName={rejectModal.guideName}
+        onConfirm={handleConfirmReject}
+        onCancel={() => setRejectModal({ isOpen: false, guideId: null, guideName: "" })}
+        isProcessing={actionLoading === rejectModal.guideId}
       />
     </div>
   );

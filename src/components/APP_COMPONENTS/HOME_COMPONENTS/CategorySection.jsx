@@ -2,40 +2,58 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Ship, ShoppingBag, Users, Compass  } from "lucide-react";
+import { Ship, ShoppingBag, Users, BrainCircuit } from "lucide-react";
 
 const categories = [
-  { icon: Ship, label: "Trips", desc: "Offshore and inshore fishing adventures await you at the best locations." },
-  { icon: ShoppingBag, label: "Marketplace", desc: "Top gear, lures, rods and accessories for every angler's need." },
-  { icon: Users, label: "Community", desc: "Connect with fellow anglers, share stories, and join the fleet." },
-  { icon: Compass, label: "Discover", desc: "Explore new destinations, read guides, and find your next catch." },
- ];
+  { 
+    path: "/trips", 
+    icon: Ship, 
+    label: "Trips", 
+    desc: "Book curated maritime experiences with expert captains and premium vessels." 
+  },
+  { 
+    path: "/marketplace", 
+    icon: ShoppingBag, 
+    label: "Marketplace", 
+    desc: "Buy and sell premium fishing gear and maritime equipment globally." 
+  },
+  { 
+    path: "/community", 
+    icon: Users, 
+    label: "Community", 
+    desc: "Connect with a global network of anglers and share your latest trophies." 
+  },
+  { 
+    path: "/", 
+    icon: BrainCircuit, 
+    label: "Discover", 
+    desc: "Leverage AI to find the best fishing spots and weather conditions in real-time." 
+  },
+];
 
-// --- Staggered Entrance Animation Variants for the whole group ---
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Delays the next item by 0.1s
+      staggerChildren: 0.15,
     },
   },
 };
 
-// --- Child Card Entrance Animation Variants ---
 const cardVariants = {
   hidden: {
     opacity: 0,
-    y: 30, // Start slightly below
-    scale: 0.95, // Start slightly smaller
+    y: 40,
+    filter: "blur(4px)",
   },
   visible: {
     opacity: 1,
     y: 0,
-    scale: 1,
+    filter: "blur(0px)",
     transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1], // Smooth custom ease
+      duration: 0.7,
+      ease: [0.25, 0.46, 0.45, 0.94],
     },
   },
 };
@@ -44,41 +62,44 @@ const CategorySection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-20 relative z-10">
-      {/* --- Container with staggered entry --- */}
+    <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-20 relative z-10">
       <motion.div
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
         variants={containerVariants}
         initial="hidden"
-        whileInView="visible" // Triggers when in view
-        viewport={{ once: true, amount: 0.3 }} // Ensures animation runs only once when 30% of item is in view
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
       >
-        {categories.map(({ icon: Icon, label, desc }, index) => (
+        {categories.map(({ path, icon: Icon, label, desc }) => (
           <motion.div
             key={label}
-            className="cat-card group cursor-pointer p-6 rounded-2xl bg-[#002238] border border-white/5 hover:border-sky-400/30 transition-all duration-300 text-center relative overflow-hidden"
             variants={cardVariants}
-            // Passing index directly to `custom` can be useful for individual delays,
-            // but the container staggered children is a cleaner solution here.
-            // custom={index}
+            onClick={() => navigate(path)}
+             className="group relative cursor-pointer flex flex-col p-6 md:p-8 rounded-2xl bg-[#002238] border border-white/5 overflow-hidden transition-all duration-300"
             whileHover={{
-              y: -4,
-              scale: 1.01,
-              // Subtle inner glow on hover using an overlay
-              backgroundImage: "radial-gradient(ellipse at top left, rgba(83,214,251,0.08), transparent 70%)",
+              y: -5,
+              borderColor: "rgba(83,214,251,0.3)",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.4), 0 0 20px rgba(83,214,251,0.05) inset",
             }}
-            onClick={() => navigate("/trips")}
           >
-            {/* --- Stronger icon box on hover (re-styled with deeper blue) --- */}
-            <div className="w-14 h-14 rounded-2xl bg-sky-950 flex items-center justify-center mx-auto mb-4 group-hover:bg-sky-900 group-hover:scale-110 transition-transform">
-              <Icon size={26} className="text-sky-400" />
+             <div
+              className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: "radial-gradient(circle at 10% 10%, rgba(83,214,251,0.12) 0%, transparent 60%)",
+              }}
+            />
+
+            <div className="mb-5 text-[#53D6FB] transform group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300 origin-left">
+              <Icon size={28} strokeWidth={1.5} />
             </div>
 
-            {/* --- Title --- */}
-            <h3 className="text-[#cee5ff] font-extrabold text-sm mb-1">{label}</h3>
+             <h3 className="text-[#cee5ff] font-semibold text-sm md:text-base mb-2.5 tracking-wide">
+              {label}
+            </h3>
 
-            {/* --- Description --- */}
-            <p className="text-[#a3cbf2]/60 text-xs leading-relaxed max-w-[200px] mx-auto">{desc}</p>
+             <p className="text-[#a3cbf2]/60 text-[11px] md:text-[13px] leading-relaxed">
+              {desc}
+            </p>
           </motion.div>
         ))}
       </motion.div>

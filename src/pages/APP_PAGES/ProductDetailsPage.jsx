@@ -630,7 +630,7 @@
 
 // export default ProductDetailsPage;
 
-import React, { useState, useEffect, useRef } from "react";
+ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -642,6 +642,7 @@ import apiClient from "../../api/apiClient";
 import { useCart } from "../../context/CartContext";
 import { toast } from 'react-hot-toast';
 import ProductReviews from "./../../components/APP_COMPONENTS/MARKETPLACE_COMPONENTS/ProductReviews";
+import Breadcrumb from "../../components/APP_COMPONENTS/Breadcrumb"; // Add this import
 
 // ─── Enums & Helpers ─────────────────────────────────────────────────────────
 const CATEGORIES = {
@@ -762,6 +763,12 @@ const ProductDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeImage, setActiveImage] = useState("");
 
+  // Custom breadcrumb items for product page
+  const breadcrumbItems = [
+    { name: "Marketplace", path: "/marketplace", isLast: false },
+    { name: product?.title || "Product", path: "", isLast: true }
+  ];
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchProduct = async () => {
@@ -828,23 +835,10 @@ const ProductDetailsPage = () => {
 
       <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4">
         
-        {/* Animated Custom Back Button & Breadcrumbs */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-3 mb-6"
-        >
-          {/* <motion.button 
-            whileHover={{ scale: 1.05, x: -2 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)} 
-            className="group flex items-center justify-center w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-sky-400/10 hover:border-sky-400/30 transition-all duration-300"
-          >
-            <ArrowLeft size={16} className="text-[#a3cbf2]/70 group-hover:text-sky-400 transition-colors" />
-          </motion.button> */}
-
-     
-        </motion.div>
+        {/* Breadcrumb - Added here */}
+        <div className="mb-6">
+          <Breadcrumb customItems={breadcrumbItems} />
+        </div>
 
         {/* Product Top Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8 xl:gap-12">

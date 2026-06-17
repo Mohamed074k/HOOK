@@ -305,7 +305,7 @@ const BookingsManagement = () => {
   return (
     <div className="space-y-6 pb-12 w-full max-w-full overflow-x-hidden sm:overflow-visible">
       {/* Header & Filters */}
-      <div className={`relative z-40 transform transition-all duration-700 ease-out ${
+      <div className={`relative z-20 transform transition-all duration-700 ease-out ${
         animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full min-w-0">

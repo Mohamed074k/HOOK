@@ -6,7 +6,7 @@ import {
   Calendar, ChevronLeft, ChevronRight, Check, Wifi,
   Coffee, Utensils, Camera, Shield, Wind, Thermometer,
   Droplets, Fish, Compass, Navigation, Phone, Mail,
-  Gift, Heart, Share2, Bookmark, Maximize2, Minimize2, X, ChevronDown,
+  Gift, Share2, Bookmark, Maximize2, Minimize2, X, ChevronDown,
   Info, Package, Settings, Award, Briefcase, DollarSign, Link as LinkIcon,
   Clock as ClockIcon, UserCheck, MessageCircle, ThumbsUp
 } from "lucide-react";
@@ -345,6 +345,12 @@ const TripDetailsPage = () => {
   const closeShareMenu = useCallback(() => {
     setShowShareMenu(false);
   }, []);
+  
+    // Scroll to top on page load
+      useEffect(() => {
+        window.scrollTo(0, 0);
+      }, []);
+      
 
   if (loading) {
     return (
@@ -464,14 +470,7 @@ const TripDetailsPage = () => {
             </div>
             
             <div className="flex gap-3 relative">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleLike}
-                className="w-12 h-12 rounded-xl bg-[#001526] border border-white/5 flex items-center justify-center transition-all hover:border-white/10 shadow-sm"
-              >
-                <Heart size={20} className={isLiked ? "fill-red-500 text-red-500" : "text-[#a3cbf2]"} />
-              </motion.button>
+           
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -611,7 +610,7 @@ const TripDetailsPage = () => {
           >
             <div className="bg-[#002238] border border-sky-400/20 rounded-2xl p-6 shadow-2xl">
               <div className="text-center mb-6 pb-4 border-b border-white/5">
-                <div className="text-3xl font-black text-sky-400">${trip.pricePerPerson}</div>
+                <div className="text-3xl font-black text-sky-400">{trip.pricePerPerson} L.E</div>
                 <div className="text-xs text-[#a3cbf2]/40 uppercase tracking-wider mt-1">per person</div>
               </div>
               

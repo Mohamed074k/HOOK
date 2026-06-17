@@ -16,10 +16,6 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // In a real flow, you might select an eligible order ID from the user's history.
-  // Using a dummy UUID here to satisfy the payload requirement for the example.
-  const dummyOrderId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"; 
-
   useEffect(() => {
     if (!isOpen) {
       setRating(0);
@@ -34,18 +30,41 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
 
     setIsSubmitting(true);
     try {
+      // 1. Fetch the user's purchase history to find the real order ID
+      const ordersResponse = await apiClient.get("/api/marketplace/orders/admin-user/my-purchases");
+      const userOrders = ordersResponse.data || [];
+
+      // 2. Find an eligible order: Status must be 3 (Delivered) AND contain the productId
+      const eligibleOrder = userOrders.find(order => 
+        order.status === 3 && 
+        order.items?.some(item => item.productId === productId || item.id === productId)
+      );
+
+      if (!eligibleOrder) {
+        toast.error("You must purchase and receive this product before you can review it.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 3. Submit the review with the verified orderId
       await apiClient.post("/api/marketplace/reviews/admin-user/create", {
-        orderId: dummyOrderId, 
+        orderId: eligibleOrder.id, 
         productId: productId,
         rating: rating,
         comment: comment.trim()
       });
+
       toast.success("Review submitted successfully!");
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error submitting review:", error);
-      toast.error(error.response?.data?.message || "Failed to submit review");
+      
+      // Look for the "description" field first, then "message", then fallback
+      const errorDesc = error.response?.data?.description;
+      const errorMsg = error.response?.data?.message;
+      
+      toast.error(errorDesc || errorMsg || "Failed to submit review");
     } finally {
       setIsSubmitting(false);
     }
@@ -122,15 +141,23 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 rounded-xl border border-white/10 text-[#a3cbf2] font-bold tracking-widest text-xs uppercase hover:bg-white/5 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 rounded-xl border border-white/10 text-[#a3cbf2] font-bold tracking-widest text-xs uppercase hover:bg-white/5 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-sky-400 text-[#001526] font-bold tracking-widest text-xs uppercase hover:bg-sky-300 transition-colors disabled:opacity-50 shadow-md shadow-sky-400/20"
+                  className="flex-1 py-3 rounded-xl bg-sky-400 text-[#001526] font-bold tracking-widest text-xs uppercase hover:bg-sky-300 transition-colors disabled:opacity-80 disabled:cursor-not-allowed shadow-md shadow-sky-400/20 flex items-center justify-center gap-2"
                 >
+                  {isSubmitting && (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-[#001526]/30 border-t-[#001526] rounded-full"
+                    />
+                  )}
                   {isSubmitting ? "Submitting..." : "Post Review"}
                 </button>
               </div>
@@ -144,6 +171,7 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
 
 const ProductReviews = ({ productId, initialReviews = [], averageRating, reviewsCount }) => {
   const [reviews, setReviews] = useState(initialReviews);
+  const [hasFetched, setHasFetched] = useState(false); // New flag to prevent overwrites
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -152,6 +180,7 @@ const ProductReviews = ({ productId, initialReviews = [], averageRating, reviews
       setIsLoading(true);
       const response = await apiClient.get(`/api/marketplace/reviews/allroles/${productId}`);
       setReviews(response.data || []);
+      setHasFetched(true); // Flag that we have live data, ignore initialReviews from now on
     } catch (error) {
       console.error("Failed to refresh reviews:", error);
     } finally {
@@ -160,12 +189,14 @@ const ProductReviews = ({ productId, initialReviews = [], averageRating, reviews
   };
 
   useEffect(() => {
-    if (initialReviews.length > 0) {
+    // Only use initialReviews if we haven't manually fetched new ones
+    if (!hasFetched && initialReviews.length > 0) {
       setReviews(initialReviews);
-    } else if (productId) {
+    } else if (!hasFetched && productId && initialReviews.length === 0) {
       fetchReviews();
     }
-  }, [productId, initialReviews]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, initialReviews, hasFetched]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -194,7 +225,7 @@ const ProductReviews = ({ productId, initialReviews = [], averageRating, reviews
               ))}
             </div>
             <span className="text-[#a3cbf2]/80 text-xs font-medium">
-              {averageRating?.toFixed(1) || "0.0"} out of 5 ({reviewsCount || 0} reviews)
+              {averageRating?.toFixed(1) || "0.0"} out of 5 ({hasFetched ? reviews.length : (reviewsCount || 0)} reviews)
             </span>
           </div>
         </div>

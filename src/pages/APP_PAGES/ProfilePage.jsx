@@ -10,7 +10,16 @@ import TripsTab from "./../../components/APP_COMPONENTS/PROFILE_COMPONENTS/Trips
 import OrdersTab from "./../../components/APP_COMPONENTS/PROFILE_COMPONENTS/OrdersTab";
 
 const ProfilePage = () => {
-  const { profile, loading, updateProfile, changePassword } = useProfile();
+  const { 
+    profile,
+    loading,
+    updateProfile,
+    changePassword , 
+    boatOwnerStatus,
+    sellerStatus,
+    submitBoatOwnerApplication,
+    submitSellerApplication
+  } = useProfile();
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('settings');
   const [isMobile, setIsMobile] = useState(false);
@@ -70,9 +79,17 @@ const ProfilePage = () => {
             exit="exit"
             className="w-full max-w-7xl mx-auto"
           >
-            {activeTab === 'settings' && (
-              <SettingsTab profile={profile} updateProfile={updateProfile} changePassword={changePassword} />
-            )}
+        {activeTab === 'settings' && (
+  <SettingsTab 
+    profile={profile} 
+    updateProfile={updateProfile} 
+    changePassword={changePassword}
+    boatOwnerStatus={boatOwnerStatus}
+    sellerStatus={sellerStatus}
+    submitBoatOwnerApplication={submitBoatOwnerApplication}
+    submitSellerApplication={submitSellerApplication}
+  />
+)}
             {activeTab === 'trips' && <TripsTab />}
             {activeTab === 'orders' && <OrdersTab />}
           </motion.div>

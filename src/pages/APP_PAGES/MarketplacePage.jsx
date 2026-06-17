@@ -8,6 +8,7 @@ import gsap from "gsap";
 import apiClient from "../../api/apiClient";
 import { toast } from 'react-hot-toast';
 import ProductCard from "../../components/APP_COMPONENTS/MARKETPLACE_COMPONENTS/ProductCard";
+import Breadcrumb from "../../components/APP_COMPONENTS/Breadcrumb"; 
 
 // ─── Enums & Helpers ─────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -373,12 +374,22 @@ const MarketplacePage = () => {
     return 'grid-cols-2';
   };
 
+    // Scroll to top on page load
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+    
   return (
     <div className="min-h-screen bg-[#001526] text-[#cee5ff] relative overflow-hidden">
       <AnimatedBackground />
 
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 relative z-10">
         
+        {/* Breadcrumb - Added here */}
+        <div className="mb-6">
+          <Breadcrumb />
+        </div>
+
         {/* Hero Section with GSAP Animation */}
         <HeroSection />
 

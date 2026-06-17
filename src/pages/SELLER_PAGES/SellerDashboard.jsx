@@ -109,7 +109,7 @@ const SellerDashboard = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {cards.map(({ label, value, icon: Icon, color, bg, ring, glow, trend }, idx) => (
           <div
             key={label}
@@ -123,14 +123,19 @@ const SellerDashboard = () => {
             }}
           >
             <div className="flex items-center justify-between mb-5">
-              <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+              <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
                 <Icon className={color} size={21} />
               </div>
               <ArrowUpRight size={16} className="text-[#a3cbf2]/20 group-hover:text-[#a3cbf2]/60 transition-all" />
             </div>
-            <p className="text-3xl font-black text-[#cee5ff] tracking-tight">{value}</p>
-            <p className="text-[#a3cbf2]/50 text-sm mt-1">{label}</p>
-            <p className={`text-xs mt-3 font-medium ${color} opacity-70`}>{trend}</p>
+          {/* Value */}
+            <p className="text-2xl sm:text-3xl font-black text-[#cee5ff] tracking-tight">{value}</p>
+            <p className="text-[#a3cbf2]/50 text-xs sm:text-sm mt-0.5 sm:mt-1">{label}</p>
+
+            {/* Trend */}
+            <p className={`text-[10px] sm:text-xs mt-2 sm:mt-3 font-medium ${color} opacity-70`}>
+              {trend}
+            </p>
           </div>
         ))}
       </div>

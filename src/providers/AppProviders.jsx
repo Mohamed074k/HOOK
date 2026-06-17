@@ -5,6 +5,10 @@ import { AuthProvider } from "../context/AuthContext";
 import { ProfileProvider } from "../context/ProfileContext";
 import { CartProvider } from "../context/CartContext";
 
+// APP CONTEXTS
+import { CommunityProvider } from "../context/APP_CONTEXT/CommunityContext";
+import { CommunityProfileProvider } from "../context/APP_CONTEXT/CommunityProfileContext";
+
 // BOAT OWNER CONTEXTS
 import { BoatProvider } from "../context/BOAT_OWNER_CONTEXT/BoatContext";
 import { TripProvider } from "../context/BOAT_OWNER_CONTEXT/TripContext";
@@ -14,11 +18,12 @@ import { BookingProvider } from "../context/BOAT_OWNER_CONTEXT/BookingContext";
 import { SellerProvider } from "../context/SUPER_ADMIN_CONTEXT/SellersContext";
 import { SuperAdminProductProvider } from "../context/SUPER_ADMIN_CONTEXT/ProductContext";
 
+// COMMUNITY ADMIN CONTEXTS
+import { CommunityAdminProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ComplaintsContext"; 
+import { ProhibitedLocationsProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedLocationsContext"; // <-- ADDED THIS
+
 // SELLER CONTEXTS
 import { ProductProvider } from "../context/SELLER_CONTEXT/ProductContext";
-
-// Protected Route Component
-import ProtectedRoute from "../components/ProtectedRoute";
 
 // Role-based Providers
 const BoatOwnerProviders = ({ children }) => (
@@ -29,24 +34,37 @@ const BoatOwnerProviders = ({ children }) => (
   </BoatProvider>
 );
 
-// Seller Providers
 const SellerProviders = ({ children }) => (
   <SellerProvider>
     <ProductProvider>{children}</ProductProvider>
   </SellerProvider>
 );
 
-// Super Admin Providers
 const SuperAdminProviders = ({ children }) => (
   <SellerProvider>
     <SuperAdminProductProvider>{children}</SuperAdminProductProvider>
   </SellerProvider>
 );
 
+// Community Admin Providers
+const CommunityAdminProviders = ({ children }) => (
+  <CommunityAdminProvider>
+    <ProhibitedLocationsProvider> 
+      {children}
+    </ProhibitedLocationsProvider>
+  </CommunityAdminProvider> 
+);
+
 // App Providers for public pages (all users)
 const AppProviders = ({ children }) => (
   <ProfileProvider>
-    <CartProvider>{children}</CartProvider>
+    <CartProvider>
+      <CommunityProvider>
+        <CommunityProfileProvider>
+          {children}
+        </CommunityProfileProvider>
+      </CommunityProvider>
+    </CartProvider>
   </ProfileProvider>
 );
 
@@ -56,6 +74,8 @@ export const MainProvider = ({ children, role }) => {
     switch (userRole) {
       case "Admin":
         return SuperAdminProviders;
+      case "CommunityAdmin":        
+        return CommunityAdminProviders; 
       case "Seller":
         return SellerProviders;
       case "BoatOwner":

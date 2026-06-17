@@ -93,7 +93,7 @@ const SuperAdminSidebar = ({ onClose }) => {
       <div className="p-3 border-t border-white/5 space-y-1">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#a3cbf2]/50 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 text-sm group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-400/80 bg-rose-400/5 hover:text-rose-400 transition-colors border border-rose-400/10 hover:border-rose-400/30"
         >
           <span className="w-8 h-8 flex items-center justify-center rounded-lg group-hover:bg-red-400/10 transition-all duration-200">
             <LogOut size={16} />

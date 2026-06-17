@@ -11,7 +11,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
   const navItems = [
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'trips', label: 'My Trips', icon: Anchor },
-    { id: 'orders', label: 'Orders', icon: Package },
+    { id: 'orders', label: 'My Orders', icon: Package },
   ];
 
   // Check if screen is mobile
