@@ -20,7 +20,9 @@ import { SuperAdminProductProvider } from "../context/SUPER_ADMIN_CONTEXT/Produc
 
 // COMMUNITY ADMIN CONTEXTS
 import { CommunityAdminProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ComplaintsContext"; 
-import { ProhibitedLocationsProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedLocationsContext"; // <-- ADDED THIS
+import { ProhibitedLocationsProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedLocationsContext";
+import { ProhibitedToolsProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedToolsContext"; 
+import { ProhibitedSeasonsProvider } from "../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedSeasonsContext"; 
 
 // SELLER CONTEXTS
 import { ProductProvider } from "../context/SELLER_CONTEXT/ProductContext";
@@ -50,7 +52,11 @@ const SuperAdminProviders = ({ children }) => (
 const CommunityAdminProviders = ({ children }) => (
   <CommunityAdminProvider>
     <ProhibitedLocationsProvider> 
+    <ProhibitedToolsProvider> 
+    <ProhibitedSeasonsProvider> 
       {children}
+    </ProhibitedSeasonsProvider>
+    </ProhibitedToolsProvider>
     </ProhibitedLocationsProvider>
   </CommunityAdminProvider> 
 );

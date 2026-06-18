@@ -27,6 +27,7 @@ import CommunityProfilePage from "./pages/APP_PAGES/CommunityProfilePage";
 import ProfilePage from "./pages/APP_PAGES/ProfilePage";
 import CartPage from "./pages/APP_PAGES/CartPage";
 import CheckoutPage from "./pages/APP_PAGES/CheckoutPage.jsx";
+import ChatbotPage from "./pages/APP_PAGES/ChatbotPage.jsx";
  
 // ─── Super Admin Pages ────────────────────────────────────────────────────────
 import SuperAdminDashboard from "./pages/SUPER_ADMIN_PAGES/SuperAdminDashboard";
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
       { path: "trip/:id/book", element: <BookingPage /> },
       { path: "marketplace", element: <MarketplacePage /> },
       { path: "marketplace/product/:id", element: <ProductDetailsPage /> }, 
+      { path: "chatbot", element: <ChatbotPage /> }, 
       
       // Community Routes
       { path: "community", element: <CommunityPage /> },

@@ -308,9 +308,9 @@ const CommunityPage = () => {
                   {sidebarData.sellers.map(seller => (
                     <div key={seller.id} className="flex items-center justify-between group">
                       <div className="flex items-center gap-3">
-                        <UserAvatar url={seller.imageUrl} name={seller.name} className="w-10 h-10 rounded-xl border border-white/10 group-hover:border-sky-400/50" />
+                        <UserAvatar url={seller.storeImageUrl} name={seller.sellerName} className="w-10 h-10 rounded-xl border border-white/10 group-hover:border-sky-400/50" />
                         <div>
-                          <p className="text-sm font-bold text-[#cee5ff] group-hover:text-sky-400 line-clamp-1">{seller.name}</p>
+                          <p className="text-sm font-bold text-[#cee5ff] group-hover:text-sky-400 line-clamp-1">{seller.sellerName}</p>
                          </div>
                       </div>
                     </div>
