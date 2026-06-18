@@ -15,7 +15,9 @@ export const ProhibitedToolsProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await ToolsService.getTools();
-      setTools(data || []);
+      // Sort so the newest added tools (highest ID) appear at the top!
+      const sortedData = (data || []).sort((a, b) => b.id - a.id);
+      setTools(sortedData);
     } catch (error) {
       console.error("Error fetching tools:", error);
       toast.error("Failed to load prohibited tools");
@@ -24,10 +26,24 @@ export const ProhibitedToolsProvider = ({ children }) => {
     }
   }, []);
 
+  // Format exactly matching the POST/PUT Swagger body
+  const preparePayload = (data) => {
+    return {
+      name: data.name,
+      type: data.type || "string",
+      description: data.description,
+      material: data.material || "string",
+      isActive: data.isActive,
+      minMeshSizeCm: data.minMeshSizeCm ? Number(data.minMeshSizeCm) : 0,
+      maxLengthMeters: data.maxLengthMeters ? Number(data.maxLengthMeters) : 0,
+      banReason: data.banReason || "string"
+    };
+  };
+
   const createTool = async (data) => {
     setActionLoading(true);
     try {
-      await ToolsService.addTool(data);
+      await ToolsService.addTool(preparePayload(data));
       toast.success("Tool added successfully");
       await fetchTools();
       return true;
@@ -43,7 +59,7 @@ export const ProhibitedToolsProvider = ({ children }) => {
   const editTool = async (id, data) => {
     setActionLoading(true);
     try {
-      await ToolsService.updateTool(id, data);
+      await ToolsService.updateTool(id, preparePayload(data));
       toast.success("Tool updated successfully");
       await fetchTools();
       return true;
@@ -89,18 +105,7 @@ export const ProhibitedToolsProvider = ({ children }) => {
   };
 
   return (
-    <ProhibitedToolsContext.Provider
-      value={{
-        tools,
-        loading,
-        actionLoading,
-        fetchTools,
-        createTool,
-        editTool,
-        removeTool,
-        bulkUpload
-      }}
-    >
+    <ProhibitedToolsContext.Provider value={{ tools, loading, actionLoading, fetchTools, createTool, editTool, removeTool, bulkUpload }}>
       {children}
     </ProhibitedToolsContext.Provider>
   );

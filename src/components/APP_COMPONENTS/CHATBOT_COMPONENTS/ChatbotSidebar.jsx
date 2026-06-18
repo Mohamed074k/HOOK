@@ -1,112 +1,190 @@
+ 
 // src/components/APP_COMPONENTS/CHATBOT_COMPONENTS/ChatbotSidebar.jsx
-import React from "react";
-import { motion } from "framer-motion";
-import { Plus, MessageSquare, Bot, Settings, PanelLeftClose, Trash2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Star, Trash2, MessageSquare, X } from "lucide-react";
+import { useChat } from "../../../context/APP_CONTEXT/ChatbotContext";
 
-// Mock previous chats
-const previousChats = [
-  { id: 1, title: "Best Marlin Spots near Red Sea", date: "Today" },
-  { id: 2, title: "Deep Sea Gear Recommendations", date: "Yesterday" },
-  { id: 3, title: "Weather forecast for Alexandria", date: "Previous 7 Days" },
-  { id: 4, title: "Tuna migration patterns", date: "Previous 7 Days" }
-];
+// Helper to format dates
+const formatChatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-const ChatbotSidebar = ({ isOpen, toggleSidebar, onNewChat }) => {
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+const ChatbotSidebar = ({ isSearchOpen, setIsSearchOpen }) => {
+  const { 
+    conversations, 
+    activeConversationId, 
+    loadConversation, 
+    toggleStar, 
+    deleteChat 
+  } = useChat();
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef(null);
+
+  const filteredChats = conversations.filter((c) =>
+    c.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const starredChats = filteredChats.filter((c) => c.isStarred);
+  const recentChats = filteredChats.filter((c) => !c.isStarred);
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current.focus(), 100);
+    }
+  }, [isSearchOpen]);
+
+  const handleSelectChat = (id) => {
+    loadConversation(id);
+    setIsSearchOpen(false);
+  };
+
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={toggleSidebar}
-        />
-      )}
-
-      {/* Sidebar Container */}
-      <motion.div 
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#001a2c] border-r border-white/5 flex flex-col transition-transform duration-300 ease-[0.25,0.46,0.45,0.94] ${
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        {/* Header / New Chat Button */}
-        <div className="p-4 pt-6 flex items-center gap-2">
-          <motion.button
-            onClick={onNewChat}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex-1 flex items-center gap-2 px-4 py-3 bg-sky-500/10 border border-sky-400/20 hover:bg-sky-500/20 hover:border-sky-400/40 rounded-xl text-sky-400 font-bold text-sm transition-colors"
+      {/* --- GEMINI STYLE SEARCH MODAL --- */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex flex-col items-center bg-[#00101c]/95 backdrop-blur-md pt-12 md:pt-16 px-4"
+            onClick={() => setIsSearchOpen(false)}
           >
-            <Plus size={18} />
-            New Chat
-          </motion.button>
-          
-          <button 
-            onClick={toggleSidebar}
-            className="lg:hidden p-3 rounded-xl bg-white/5 text-[#a3cbf2] hover:bg-white/10 hover:text-white transition-colors"
-          >
-            <PanelLeftClose size={18} />
-          </button>
-        </div>
-
-        {/* Chat History List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-2 space-y-6">
-          
-          {/* Group: Today */}
-          <div>
-            <h3 className="text-[10px] font-bold text-[#a3cbf2]/40 uppercase tracking-widest mb-2 px-1">Today</h3>
-            <div className="space-y-1">
-              {previousChats.filter(c => c.date === "Today").map((chat) => (
-                <button key={chat.id} className="w-full group flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors text-left">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <MessageSquare size={14} className="text-[#a3cbf2]/50 shrink-0" />
-                    <span className="text-sm text-[#cee5ff] truncate group-hover:text-white transition-colors">{chat.title}</span>
-                  </div>
-                  <Trash2 size={14} className="text-rose-400/0 group-hover:text-rose-400/50 hover:!text-rose-400 shrink-0 transition-all" />
+            <div 
+              className="w-full max-w-3xl flex flex-col items-center h-full max-h-[85vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              
+              {/* Close Button Mobile */}
+              <div className="w-full flex justify-end mb-4 md:hidden">
+                <button onClick={() => setIsSearchOpen(false)} className="p-2 bg-white/5 rounded-full text-white">
+                  <X size={20} />
                 </button>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Group: Previous */}
-          <div>
-            <h3 className="text-[10px] font-bold text-[#a3cbf2]/40 uppercase tracking-widest mb-2 px-1">Previous</h3>
-            <div className="space-y-1">
-              {previousChats.filter(c => c.date !== "Today").map((chat) => (
-                <button key={chat.id} className="w-full group flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors text-left">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <MessageSquare size={14} className="text-[#a3cbf2]/50 shrink-0" />
-                    <span className="text-sm text-[#cee5ff] truncate group-hover:text-white transition-colors">{chat.title}</span>
+              {/* Search Input Pill */}
+              <div className="w-full relative mb-8 md:mb-10">
+                <Search size={22} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#a3cbf2]/50" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search chats..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#001a2c] border border-white/5 rounded-full py-3.5 md:py-4 pl-14 pr-6 text-white text-base md:text-lg placeholder:text-[#a3cbf2]/40 focus:outline-none focus:bg-[#002238] transition-colors shadow-2xl"
+                />
+              </div>
+
+              {/* Chat List Area */}
+              <div className="w-full flex-1 flex flex-col overflow-y-auto custom-scrollbar pb-10">
+                {filteredChats.length === 0 ? (
+                  <div className="text-center text-[#a3cbf2]/40 mt-10">
+                    No chats found.
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
+                ) : (
+                  <>
+                    {starredChats.length > 0 && (
+                      <div className="mb-8">
+                        <div className="text-yellow-500/60 text-sm font-medium mb-3 px-4 flex items-center gap-1.5">
+                          <Star size={16} className="fill-yellow-500/40" /> Starred
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          {starredChats.map((chat) => (
+                            <ChatItem
+                              key={chat.id}
+                              chat={chat}
+                              isActive={activeConversationId === chat.id}
+                              onSelect={() => handleSelectChat(chat.id)}
+                              onStar={() => toggleStar(chat.id)}
+                              onDelete={() => deleteChat(chat.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-        </div>
-
-        {/* Footer / Profile */}
-        <div className="p-4 border-t border-white/5 bg-[#001526]/50">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 flex items-center justify-center shrink-0">
-              <User size={16} className="text-[#001526] fill-current" />
+                    {recentChats.length > 0 && (
+                      <div>
+                        <div className="text-[#a3cbf2]/50 text-sm font-medium mb-3 px-4">
+                          Recent
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          {recentChats.map((chat) => (
+                            <ChatItem
+                              key={chat.id}
+                              chat={chat}
+                              isActive={activeConversationId === chat.id}
+                              onSelect={() => handleSelectChat(chat.id)}
+                              onStar={() => toggleStar(chat.id)}
+                              onDelete={() => deleteChat(chat.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold text-[#cee5ff] truncate">Captain Ahab</p>
-              <p className="text-xs text-[#a3cbf2]/50 truncate">Free Plan</p>
-            </div>
-            <Settings size={16} className="text-[#a3cbf2]/50" />
-          </button>
-        </div>
-      </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
 
-// Quick generic User icon fallback since lucide's is outlined
-const User = ({ size, className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-  </svg>
+const ChatItem = ({ chat, isActive, onSelect, onStar, onDelete }) => (
+  <div
+    onClick={onSelect}
+    className={`w-full flex items-center justify-between px-4 py-3.5 md:py-4 rounded-2xl cursor-pointer transition-colors group ${
+      isActive ? "bg-sky-500/10 border border-sky-500/20" : "hover:bg-white/5 border border-transparent"
+    }`}
+  >
+    <div className="flex items-center gap-3 md:gap-4 overflow-hidden flex-1 pr-4">
+      <MessageSquare size={18} className={isActive ? "text-sky-400" : "text-[#a3cbf2]/40"} />
+      <span 
+        className={`text-[14px] md:text-[15px] truncate transition-colors leading-relaxed ${isActive ? "text-white font-semibold" : "text-[#cee5ff] group-hover:text-white"}`}
+        dir="auto"
+        style={{ fontFamily: "'Cairo', sans-serif" }} // Arabic font ONLY for the user's chat title
+      >
+        {chat.title}
+      </span>
+    </div>
+
+    <div className="flex items-center gap-2 md:gap-3 shrink-0">
+      <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => { e.stopPropagation(); onStar(); }}
+          className="p-1.5 md:p-2 rounded-full text-[#a3cbf2]/50 hover:bg-white/10 hover:text-yellow-400 transition-colors"
+          title={chat.isStarred ? "Remove Star" : "Star Chat"}
+        >
+          <Star size={16} className={chat.isStarred ? "fill-yellow-400 text-yellow-400" : ""} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="p-1.5 md:p-2 rounded-full text-[#a3cbf2]/50 hover:bg-white/10 hover:text-rose-400 transition-colors"
+          title="Delete Chat"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+      <span className="text-[12px] md:text-[13px] text-[#a3cbf2]/50 hidden sm:block w-20 text-right">
+        {formatChatDate(chat.lastMessageAt || chat.createdOn)}
+      </span>
+    </div>
+  </div>
 );
 
 export default ChatbotSidebar;

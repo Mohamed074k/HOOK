@@ -15,6 +15,15 @@ export const CommunityProvider = ({ children }) => {
 
   const fetchSidebarData = async () => {
     if (!user) return;
+    
+    // ─── FIX: Skip sidebar fetch for Admins to prevent 403 ───
+    const isExcludedRole = Array.isArray(user.role) 
+        ? user.role.some(r => r === "Admin" || r === "CommunityAdmin") 
+        : (user.role === "Admin" || user.role === "CommunityAdmin");
+    
+    if (isExcludedRole) return;
+    // ─────────────────────────────────────────────────────────
+
     try {
       const [owners, sellers, boats] = await Promise.all([
         communityService.getTopBoatOwners(),
@@ -28,7 +37,22 @@ export const CommunityProvider = ({ children }) => {
   };
 
   const fetchPosts = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+        setIsLoading(false);
+        return;
+    }
+
+    // ─── FIX: Skip feed fetch for Admins to prevent 403 ───
+    const isExcludedRole = Array.isArray(user.role) 
+        ? user.role.some(r => r === "Admin" || r === "CommunityAdmin") 
+        : (user.role === "Admin" || user.role === "CommunityAdmin");
+    
+    if (isExcludedRole) {
+        setIsLoading(false);
+        return;
+    }
+    // ──────────────────────────────────────────────────────
+
     setIsLoading(true);
     try {
       const params = categoryFilter ? { category: categoryFilter } : {};

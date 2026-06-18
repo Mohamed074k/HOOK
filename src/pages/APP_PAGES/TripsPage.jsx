@@ -673,40 +673,11 @@ const TripsPage = () => {
   const hasActiveFilters = filters.locationName !== "" || filters.minPrice > 0 || filters.maxPrice < 6000;
 
   return (
-    <>
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        /* For Webkit browsers (Chrome, Safari, Edge) */
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #001526;
-          border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #0ea5e9, #06b6d4);
-          border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #38bdf8, #22d3ee);
-        }
-        
-        /* For Firefox */
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: #0ea5e9 #001526;
-        }
-      `}</style>
-      
+    <> 
       <div className="space-y-6 pb-12 max-w-7xl mx-auto relative pt-8 px-4 md:px-8 min-h-screen bg-[#001526] text-[#cee5ff]">
         <AnimatedBackground />
         
-        {/* Breadcrumb - Added here before HeroSection */}
+        {/* Breadcrumb */}
         <div className="mb-4">
           <Breadcrumb />
         </div>

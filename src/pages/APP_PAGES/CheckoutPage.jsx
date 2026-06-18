@@ -247,13 +247,14 @@ const InstaPayUpload = ({ receiptImage, setReceiptImage, receiptError, setReceip
 
   return (
     <div className="mt-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-sky-400/10">
+<div className="flex items-center gap-3 mb-4">
+        <div className="p-2 rounded-lg bg-sky-400/10 shrink-0">
           <Upload size={18} className="text-sky-400" />
         </div>
         <div>
           <h4 className="font-semibold text-[#cee5ff]">Upload Payment Receipt</h4>
           <p className="text-xs text-[#a3cbf2]/50">Please upload a screenshot of your InstaPay payment</p>
+          <p className="text-sm font-medium text-sky-400 mt-1">InstaPay Number: 01228563612</p>
         </div>
       </div>
 

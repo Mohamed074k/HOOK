@@ -4,7 +4,7 @@ import React from "react";
 import { AuthProvider } from "../context/AuthContext";
 import { ProfileProvider } from "../context/ProfileContext";
 import { CartProvider } from "../context/CartContext";
-
+import { ChatProvider } from "../context/APP_CONTEXT/ChatbotContext";
 // APP CONTEXTS
 import { CommunityProvider } from "../context/APP_CONTEXT/CommunityContext";
 import { CommunityProfileProvider } from "../context/APP_CONTEXT/CommunityProfileContext";
@@ -67,7 +67,9 @@ const AppProviders = ({ children }) => (
     <CartProvider>
       <CommunityProvider>
         <CommunityProfileProvider>
-          {children}
+          <ChatProvider> 
+            {children}
+          </ChatProvider>
         </CommunityProfileProvider>
       </CommunityProvider>
     </CartProvider>

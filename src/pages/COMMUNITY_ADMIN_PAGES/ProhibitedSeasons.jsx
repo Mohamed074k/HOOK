@@ -80,8 +80,9 @@ const ProhibitedSeasons = () => {
   }, [isDetailsVisible, isFormVisible, isUploadVisible, confirmModal.isOpen]);
 
   const filteredSeasons = seasons.filter(s => 
-    s.species?.toLowerCase().includes(search.toLowerCase()) ||
-    s.description?.toLowerCase().includes(search.toLowerCase())
+    s.season_name?.toLowerCase().includes(search.toLowerCase()) ||
+    s.reason?.toLowerCase().includes(search.toLowerCase()) ||
+    s.region?.toLowerCase().includes(search.toLowerCase())
   );
 
   const openDetails = (season) => {
@@ -169,7 +170,7 @@ const ProhibitedSeasons = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-[#002238] border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm text-[#cee5ff] placeholder:text-[#a3cbf2]/30 focus:outline-none focus:border-sky-400/40 shadow-sm transition-colors"
-          placeholder="Search species or description..."
+          placeholder="Search name, reason, or region..."
         />
       </div>
 
@@ -182,7 +183,7 @@ const ProhibitedSeasons = () => {
           <table className="w-full text-sm">
             <thead className="bg-[#001526] border-b border-white/10">
               <tr>
-                {["Species", "Duration", "Description", "Status", "Actions"].map((h) => (
+                {["Season Name", "Duration", "Reason", "Status", "Actions"].map((h) => (
                   <th key={h} className={`text-left px-6 py-4 text-[#a3cbf2]/50 font-semibold text-xs uppercase tracking-wider ${h==='Actions' && 'text-right'}`}>
                     {h}
                   </th>
@@ -196,18 +197,19 @@ const ProhibitedSeasons = () => {
                 </tr>
               ) : (
                 filteredSeasons.map((s) => {
-                  const status = getSeasonStatus(s.startDate, s.endDate);
+                  const status = getSeasonStatus(s.start_date, s.end_date);
                   return (
                     <tr key={s.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors duration-200">
-                      <td className="px-6 py-4 text-[#cee5ff] font-medium flex items-center gap-2">
-                        <Fish size={16} className="text-[#a3cbf2]/40"/> {s.species}
+                      <td className="px-6 py-4 text-[#cee5ff] font-medium flex items-center gap-2 max-w-[200px]">
+                        <Fish size={16} className="text-[#a3cbf2]/40 shrink-0"/> 
+                        <span className="truncate" title={s.season_name}>{s.season_name}</span>
                       </td>
                       <td className="px-6 py-4 text-[#a3cbf2]/60 whitespace-nowrap">
-                        {new Date(s.startDate).toLocaleDateString()} - <br/>
-                        {new Date(s.endDate).toLocaleDateString()}
+                        {new Date(s.start_date).toLocaleDateString()} - <br/>
+                        {new Date(s.end_date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-[#a3cbf2]/60 max-w-[250px] truncate" title={s.description}>
-                        {s.description || "N/A"}
+                      <td className="px-6 py-4 text-[#a3cbf2]/60 max-w-[250px] truncate" title={s.reason}>
+                        {s.reason || "N/A"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${status.class}`}>
@@ -222,7 +224,7 @@ const ProhibitedSeasons = () => {
                           <button onClick={() => openForm(s)} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all" title="Edit">
                             <Edit2 size={16} />
                           </button>
-                          <button onClick={() => setConfirmModal({ isOpen: true, id: s.id, title: s.species })} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all" title="Delete">
+                          <button onClick={() => setConfirmModal({ isOpen: true, id: s.id, title: s.season_name })} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all" title="Delete">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -242,28 +244,28 @@ const ProhibitedSeasons = () => {
         style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "200ms" }}
       >
         {filteredSeasons.map((s) => {
-          const status = getSeasonStatus(s.startDate, s.endDate);
+          const status = getSeasonStatus(s.start_date, s.end_date);
           return (
             <div key={s.id} className="bg-[#002238] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-all duration-200">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-[#cee5ff] font-bold text-base pr-2 flex items-center gap-1.5">
-                  <Fish size={16} className="text-[#a3cbf2]/60"/> {s.species}
+                  <Fish size={16} className="text-[#a3cbf2]/60 shrink-0"/> {s.season_name}
                 </h3>
                 <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${status.class}`}>
                   {status.text}
                 </span>
               </div>
               
-              {s.description && (
-                <p className="text-[#a3cbf2]/60 text-xs mb-3 line-clamp-2">{s.description}</p>
+              {s.reason && (
+                <p className="text-[#a3cbf2]/60 text-xs mb-3 line-clamp-2">{s.reason}</p>
               )}
               
               <div className="flex flex-col gap-1.5 text-[#a3cbf2]/40 text-xs mb-4 bg-[#001526] p-3 rounded-lg border border-white/5">
                 <span className="flex items-center justify-between">
-                  <span>Start:</span> <span className="text-[#cee5ff] font-medium">{new Date(s.startDate).toLocaleDateString()}</span>
+                  <span>Start:</span> <span className="text-[#cee5ff] font-medium">{new Date(s.start_date).toLocaleDateString()}</span>
                 </span>
                 <span className="flex items-center justify-between">
-                  <span>End:</span> <span className="text-[#cee5ff] font-medium">{new Date(s.endDate).toLocaleDateString()}</span>
+                  <span>End:</span> <span className="text-[#cee5ff] font-medium">{new Date(s.end_date).toLocaleDateString()}</span>
                 </span>
               </div>
               
@@ -274,7 +276,7 @@ const ProhibitedSeasons = () => {
                 <button onClick={() => openForm(s)} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-yellow-500/10 text-yellow-400 text-xs font-medium">
                   <Edit2 size={14}/> Edit
                 </button>
-                <button onClick={() => setConfirmModal({ isOpen: true, id: s.id, title: s.species })} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-medium">
+                <button onClick={() => setConfirmModal({ isOpen: true, id: s.id, title: s.season_name })} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-medium">
                   <Trash2 size={14}/> Delete
                 </button>
               </div>

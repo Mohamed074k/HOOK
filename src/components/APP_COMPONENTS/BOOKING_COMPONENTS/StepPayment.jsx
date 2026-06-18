@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
- import { CreditCard, DollarSign, Shield, Loader2, Lock, Smartphone, Banknote, Check, Upload, Image as ImageIcon, X } from "lucide-react";
+import { CreditCard, DollarSign, Shield, Loader2, Lock, Smartphone, Banknote, Check, Upload, Image as ImageIcon, X } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "../../../api/apiClient";
 
@@ -144,6 +144,11 @@ const StepPayment = ({ trip, quantity, selectedDateId, totalPrice, paymentMethod
               initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
               className="mt-4 overflow-hidden"
             >
+              {/* --- InstaPay Number Added Here --- */}
+              <p className="text-left text-sky-400 font-semibold mb-3">
+                InstaPay Number: 01228563612
+              </p>
+              
               {receiptFile ? (
                 <div className="relative w-full h-48 rounded-xl border border-sky-400/30 overflow-hidden bg-[#001526] group">
                   <img 

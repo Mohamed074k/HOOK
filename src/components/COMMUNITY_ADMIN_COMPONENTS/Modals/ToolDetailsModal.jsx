@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, PenTool, Scale, AlertTriangle } from "lucide-react";
+import { X, PenTool, AlertTriangle, Layers, Ruler } from "lucide-react";
 import { createPortal } from "react-dom";
 
 const ToolDetailsModal = ({ isOpen, onClose, tool }) => {
@@ -27,9 +27,9 @@ const ToolDetailsModal = ({ isOpen, onClose, tool }) => {
             
             <div className="p-5 space-y-5">
               <div>
-                <h4 className="text-xl font-bold text-[#cee5ff]">{tool.toolName}</h4>
-                <span className={`mt-2 inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tool.isActive ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
-                  {tool.isActive ? 'Active Restriction' : 'Inactive Restriction'}
+                <h4 className="text-xl font-bold text-[#cee5ff]">{tool.name}</h4>
+                <span className={`mt-2 inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tool.is_active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
+                  {tool.is_active ? 'Active Restriction' : 'Inactive Restriction'}
                 </span>
               </div>
               
@@ -38,7 +38,7 @@ const ToolDetailsModal = ({ isOpen, onClose, tool }) => {
                   <p className="text-[#a3cbf2]/40 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
                     <AlertTriangle size={12} /> Reason for Ban
                   </p>
-                  <p className="text-[#cee5ff] text-sm">{tool.reason}</p>
+                  <p className="text-[#cee5ff] text-sm">{tool.regulations?.ban_reason || "Not specified"}</p>
                 </div>
                 {tool.description && (
                   <div className="pt-3 border-t border-white/5">
@@ -48,12 +48,26 @@ const ToolDetailsModal = ({ isOpen, onClose, tool }) => {
                 )}
               </div>
 
-              <div className="bg-rose-500/5 p-4 rounded-xl border border-rose-500/10">
-                <p className="text-rose-400/60 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Scale size={12}/> Legal Penalty
-                </p>
-                <p className="text-rose-200 text-sm">{tool.penalty || "No penalty specified"}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-sky-500/5 p-4 rounded-xl border border-sky-500/10">
+                  <p className="text-sky-400/60 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Layers size={12}/> Type & Material
+                  </p>
+                  <p className="text-sky-200 text-sm capitalize">{tool.type || "N/A"} • {tool.material || "N/A"}</p>
+                </div>
+                
+                <div className="bg-amber-500/5 p-4 rounded-xl border border-amber-500/10">
+                  <p className="text-amber-400/60 text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Ruler size={12}/> Measurements
+                  </p>
+                  <p className="text-amber-200 text-sm">
+                    Mesh: {tool.regulations?.min_mesh_size_cm ? `${tool.regulations.min_mesh_size_cm}cm` : "N/A"}
+                    <br/>
+                    Length: {tool.regulations?.max_length_meters ? `${tool.regulations.max_length_meters}m` : "N/A"}
+                  </p>
+                </div>
               </div>
+
             </div>
             
             <div className="p-5 border-t border-white/10 shrink-0">

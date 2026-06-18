@@ -24,10 +24,29 @@ export const ProhibitedSeasonsProvider = ({ children }) => {
     }
   }, []);
 
+  const preparePayload = (data) => {
+    return {
+      seasonName: data.seasonName,
+      // Ensure date is valid ISO string for backend
+      startDate: new Date(data.startDate).toISOString(),
+      endDate: new Date(data.endDate).toISOString(),
+      region: data.region || "string", // fallback to prevent empty string errors if backend requires it
+      reason: data.reason || "string",
+      // Convert comma separated string back to array of strings
+      restrictedFishSpecies: data.restrictedFishSpecies
+        ? data.restrictedFishSpecies.split(",").map(s => s.trim()).filter(Boolean)
+        : [],
+      bannedTools: data.bannedTools
+        ? data.bannedTools.split(",").map(s => s.trim()).filter(Boolean)
+        : [],
+      isStrictlyEnforced: data.isStrictlyEnforced
+    };
+  };
+
   const createSeason = async (data) => {
     setActionLoading(true);
     try {
-      await SeasonsService.addSeason(data);
+      await SeasonsService.addSeason(preparePayload(data));
       toast.success("Season added successfully");
       await fetchSeasons();
       return true;
@@ -43,7 +62,7 @@ export const ProhibitedSeasonsProvider = ({ children }) => {
   const editSeason = async (id, data) => {
     setActionLoading(true);
     try {
-      await SeasonsService.updateSeason(id, data);
+      await SeasonsService.updateSeason(id, preparePayload(data));
       toast.success("Season updated successfully");
       await fetchSeasons();
       return true;
@@ -89,18 +108,7 @@ export const ProhibitedSeasonsProvider = ({ children }) => {
   };
 
   return (
-    <ProhibitedSeasonsContext.Provider
-      value={{
-        seasons,
-        loading,
-        actionLoading,
-        fetchSeasons,
-        createSeason,
-        editSeason,
-        removeSeason,
-        bulkUpload
-      }}
-    >
+    <ProhibitedSeasonsContext.Provider value={{ seasons, loading, actionLoading, fetchSeasons, createSeason, editSeason, removeSeason, bulkUpload }}>
       {children}
     </ProhibitedSeasonsContext.Provider>
   );

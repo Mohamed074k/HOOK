@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Eye, Plus, FileJson, PenTool, Trash2, Edit2, Loader2, Scale } from "lucide-react";
+import { Search, Eye, Plus, FileJson, PenTool, Trash2, Edit2, Loader2, Layers } from "lucide-react";
 import { useProhibitedTools } from "../../context/COMMUNITY_ADMIN_CONTEXT/ProhibitedToolsContext";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
@@ -70,8 +70,8 @@ const ProhibitedTools = () => {
   }, [isDetailsVisible, isFormVisible, isUploadVisible, confirmModal.isOpen]);
 
   const filteredTools = tools.filter(t => 
-    t.toolName?.toLowerCase().includes(search.toLowerCase()) ||
-    t.reason?.toLowerCase().includes(search.toLowerCase())
+    t.name?.toLowerCase().includes(search.toLowerCase()) ||
+    t.regulations?.ban_reason?.toLowerCase().includes(search.toLowerCase())
   );
 
   const openDetails = (tool) => {
@@ -172,7 +172,7 @@ const ProhibitedTools = () => {
           <table className="w-full text-sm">
             <thead className="bg-[#001526] border-b border-white/10">
               <tr>
-                {["Tool Name", "Reason", "Penalty", "Status", "Actions"].map((h) => (
+                {["Name", "Ban Reason", "Type/Material", "Status", "Actions"].map((h) => (
                   <th key={h} className={`text-left px-6 py-4 text-[#a3cbf2]/50 font-semibold text-xs uppercase tracking-wider ${h==='Actions' && 'text-right'}`}>
                     {h}
                   </th>
@@ -187,12 +187,14 @@ const ProhibitedTools = () => {
               ) : (
                 filteredTools.map((t) => (
                   <tr key={t.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors duration-200">
-                    <td className="px-6 py-4 text-[#cee5ff] font-medium">{t.toolName}</td>
-                    <td className="px-6 py-4 text-[#a3cbf2]/60 max-w-[250px] truncate" title={t.reason}>{t.reason}</td>
-                    <td className="px-6 py-4 text-rose-400/80 max-w-[200px] truncate">{t.penalty || "N/A"}</td>
+                    <td className="px-6 py-4 text-[#cee5ff] font-medium">{t.name}</td>
+                    <td className="px-6 py-4 text-[#a3cbf2]/60 max-w-[250px] truncate" title={t.regulations?.ban_reason}>{t.regulations?.ban_reason}</td>
+                    <td className="px-6 py-4 text-[#a3cbf2]/80 max-w-[200px] truncate capitalize">
+                      {t.type || "N/A"} <span className="text-white/20 mx-1">|</span> {t.material || "N/A"}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${t.isActive ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
-                        {t.isActive ? 'Active' : 'Inactive'}
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${t.is_active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
+                        {t.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -203,7 +205,7 @@ const ProhibitedTools = () => {
                         <button onClick={() => openForm(t)} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all" title="Edit">
                           <Edit2 size={16} />
                         </button>
-                        <button onClick={() => setConfirmModal({ isOpen: true, id: t.id, title: t.toolName })} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all" title="Delete">
+                        <button onClick={() => setConfirmModal({ isOpen: true, id: t.id, title: t.name })} className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-rose-400 hover:bg-rose-400/10 transition-all" title="Delete">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -224,20 +226,18 @@ const ProhibitedTools = () => {
         {filteredTools.map((t) => (
           <div key={t.id} className="bg-[#002238] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-all duration-200">
             <div className="flex items-start justify-between mb-2">
-              <h3 className="text-[#cee5ff] font-bold text-base pr-2">{t.toolName}</h3>
-              <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${t.isActive ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
-                {t.isActive ? 'Active' : 'Inactive'}
+              <h3 className="text-[#cee5ff] font-bold text-base pr-2">{t.name}</h3>
+              <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${t.is_active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-rose-400/10 text-rose-400'}`}>
+                {t.is_active ? 'Active' : 'Inactive'}
               </span>
             </div>
             
-            <p className="text-[#a3cbf2]/60 text-xs mb-3 line-clamp-2">{t.reason}</p>
+            <p className="text-[#a3cbf2]/60 text-xs mb-3 line-clamp-2">{t.regulations?.ban_reason}</p>
             
-            {t.penalty && (
-              <div className="flex items-start gap-1.5 text-rose-400/80 text-xs mb-4 bg-rose-500/5 p-2 rounded-lg border border-rose-500/10">
-                <Scale size={12} className="shrink-0 mt-0.5" /> 
-                <span className="line-clamp-2">{t.penalty}</span>
-              </div>
-            )}
+            <div className="flex items-start gap-1.5 text-sky-400/80 text-xs mb-4 bg-sky-500/5 p-2 rounded-lg border border-sky-500/10 capitalize">
+              <Layers size={12} className="shrink-0 mt-0.5" /> 
+              <span className="line-clamp-2">{t.type || "N/A"} • {t.material || "N/A"}</span>
+            </div>
             
             <div className="grid grid-cols-3 gap-2 border-t border-white/5 pt-3">
               <button onClick={() => openDetails(t)} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-sky-500/10 text-sky-400 text-xs font-medium">
@@ -246,7 +246,7 @@ const ProhibitedTools = () => {
               <button onClick={() => openForm(t)} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-yellow-500/10 text-yellow-400 text-xs font-medium">
                 <Edit2 size={14}/> Edit
               </button>
-              <button onClick={() => setConfirmModal({ isOpen: true, id: t.id, title: t.toolName })} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-medium">
+              <button onClick={() => setConfirmModal({ isOpen: true, id: t.id, title: t.name })} className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-medium">
                 <Trash2 size={14}/> Delete
               </button>
             </div>

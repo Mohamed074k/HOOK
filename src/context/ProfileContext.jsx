@@ -37,6 +37,18 @@ export const ProfileProvider = ({ children }) => {
             return;
         }
 
+        // ─── FIX: Check if the role is Admin or CommunityAdmin to prevent 403 ───
+        const isExcludedRole = Array.isArray(user.role) 
+            ? user.role.some(r => r === "Admin" || r === "CommunityAdmin") 
+            : (user.role === "Admin" || user.role === "CommunityAdmin");
+
+        if (isExcludedRole) {
+            setLoading(false);
+            setProfile(null); // Keep profile null for admin dashboards
+            return;
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         setLoading(true);
         setError(null);
         
@@ -128,140 +140,106 @@ export const ProfileProvider = ({ children }) => {
         }
     }, []);
 
-// Submit Boat Owner Application
-const submitBoatOwnerApplication = useCallback(async (applicationData) => {
-    try {
-        const formData = new FormData();
-        formData.append("NationalIdNumber", applicationData.nationalIdNumber);
-        formData.append("BoatLicenseNumber", applicationData.boatLicenseNumber);
-        formData.append("InstaPayNumber", applicationData.instaPayNumber || "");
-        formData.append("VodafoneCashNumber", applicationData.vodafoneCashNumber || "");
-        
-        if (applicationData.nationalIdImage && !applicationData.nationalIdImage.startsWith('http')) {
-            const imageFile = convertBase64ToFile(applicationData.nationalIdImage, 'national-id.jpg');
-            formData.append("NationalIdImage", imageFile);
-        }
-        
-        if (applicationData.boatLicenseImage && !applicationData.boatLicenseImage.startsWith('http')) {
-            const imageFile = convertBase64ToFile(applicationData.boatLicenseImage, 'boat-license.jpg');
-            formData.append("BoatLicenseImage", imageFile);
-        }
-
-        const response = await profileService.applyForBoatOwner(formData);
-        
-        // Store the application status locally and in localStorage
-        const statusData = {
-            status: 1, // Pending
-            message: response.message || "Application submitted successfully",
-            submittedAt: new Date().toISOString()
-        };
-        setBoatOwnerStatus(statusData);
-        localStorage.setItem('boatOwnerStatus', JSON.stringify(statusData));
-        
-        toast.success(response.message || "Boat owner application submitted successfully!");
-        return response;
-    } catch (err) {
-        console.error("Boat owner application error:", err);
-        
-        let errorMessage = "Failed to submit application";
-        
-        // Check for detail field (common in 500 errors with Exception type)
-        if (err.response?.data?.detail) {
-            errorMessage = err.response.data.detail;
-        }
-        // Check for description field (custom API errors)
-        else if (err.response?.data?.description) {
-            errorMessage = err.response.data.description;
-        }
-        // Handle validation errors (errors object with field-specific messages)
-        else if (err.response?.data?.errors) {
-            const errorsObj = err.response.data.errors;
-            const allErrors = Object.values(errorsObj).flat();
-            if (allErrors.length > 0) {
-                errorMessage = allErrors[0];
+    // Submit Boat Owner Application
+    const submitBoatOwnerApplication = useCallback(async (applicationData) => {
+        try {
+            const formData = new FormData();
+            formData.append("NationalIdNumber", applicationData.nationalIdNumber);
+            formData.append("BoatLicenseNumber", applicationData.boatLicenseNumber);
+            formData.append("InstaPayNumber", applicationData.instaPayNumber || "");
+            formData.append("VodafoneCashNumber", applicationData.vodafoneCashNumber || "");
+            
+            if (applicationData.nationalIdImage && !applicationData.nationalIdImage.startsWith('http')) {
+                const imageFile = convertBase64ToFile(applicationData.nationalIdImage, 'national-id.jpg');
+                formData.append("NationalIdImage", imageFile);
             }
-        }
-        // Handle standard error title
-        else if (err.response?.data?.title) {
-            errorMessage = err.response.data.title;
-        }
-        // Handle simple message
-        else if (err.response?.data?.message) {
-            errorMessage = err.response.data.message;
-        }
-        
-        toast.error(errorMessage);
-        throw err;
-    }
-}, [convertBase64ToFile]);
-
-// Submit Seller Application
-const submitSellerApplication = useCallback(async (applicationData) => {
-    try {
-        const formData = new FormData();
-        formData.append("SellerName", applicationData.sellerName);
-        formData.append("PhoneNumber", applicationData.phoneNumber);
-        formData.append("Governorate", applicationData.governorate);
-        formData.append("City", applicationData.city);
-        formData.append("Address", applicationData.address);
-        
-        if (applicationData.nationalIdImage && !applicationData.nationalIdImage.startsWith('http')) {
-            const imageFile = convertBase64ToFile(applicationData.nationalIdImage, 'national-id.jpg');
-            formData.append("NationalIdImage", imageFile);
-        }
-        
-        if (applicationData.storeImage && !applicationData.storeImage.startsWith('http')) {
-            const imageFile = convertBase64ToFile(applicationData.storeImage, 'store.jpg');
-            formData.append("StoreImage", imageFile);
-        }
-
-        const response = await profileService.applyForSeller(formData);
-        
-        // Store the application status locally and in localStorage
-        const statusData = {
-            status: 1, // Pending
-            message: response.message || "Application submitted successfully",
-            submittedAt: new Date().toISOString()
-        };
-        setSellerStatus(statusData);
-        localStorage.setItem('sellerStatus', JSON.stringify(statusData));
-        
-        toast.success(response.message || "Seller application submitted successfully!");
-        return response;
-    } catch (err) {
-        console.error("Seller application error:", err);
-        
-        let errorMessage = "Failed to submit application";
-        
-        // Check for detail field (common in 500 errors with Exception type)
-        if (err.response?.data?.detail) {
-            errorMessage = err.response.data.detail;
-        }
-        // Check for description field (custom API errors)
-        else if (err.response?.data?.description) {
-            errorMessage = err.response.data.description;
-        }
-        // Handle validation errors (errors object with field-specific messages)
-        else if (err.response?.data?.errors) {
-            const errorsObj = err.response.data.errors;
-            const allErrors = Object.values(errorsObj).flat();
-            if (allErrors.length > 0) {
-                errorMessage = allErrors[0];
+            
+            if (applicationData.boatLicenseImage && !applicationData.boatLicenseImage.startsWith('http')) {
+                const imageFile = convertBase64ToFile(applicationData.boatLicenseImage, 'boat-license.jpg');
+                formData.append("BoatLicenseImage", imageFile);
             }
+
+            const response = await profileService.applyForBoatOwner(formData);
+            
+            // Store the application status locally and in localStorage
+            const statusData = {
+                status: 1, // Pending
+                message: response.message || "Application submitted successfully",
+                submittedAt: new Date().toISOString()
+            };
+            setBoatOwnerStatus(statusData);
+            localStorage.setItem('boatOwnerStatus', JSON.stringify(statusData));
+            
+            toast.success(response.message || "Boat owner application submitted successfully!");
+            return response;
+        } catch (err) {
+            console.error("Boat owner application error:", err);
+            let errorMessage = "Failed to submit application";
+            if (err.response?.data?.detail) errorMessage = err.response.data.detail;
+            else if (err.response?.data?.description) errorMessage = err.response.data.description;
+            else if (err.response?.data?.errors) {
+                const errorsObj = err.response.data.errors;
+                const allErrors = Object.values(errorsObj).flat();
+                if (allErrors.length > 0) errorMessage = allErrors[0];
+            }
+            else if (err.response?.data?.title) errorMessage = err.response.data.title;
+            else if (err.response?.data?.message) errorMessage = err.response.data.message;
+            
+            toast.error(errorMessage);
+            throw err;
         }
-        // Handle standard error title
-        else if (err.response?.data?.title) {
-            errorMessage = err.response.data.title;
+    }, [convertBase64ToFile]);
+
+    // Submit Seller Application
+    const submitSellerApplication = useCallback(async (applicationData) => {
+        try {
+            const formData = new FormData();
+            formData.append("SellerName", applicationData.sellerName);
+            formData.append("PhoneNumber", applicationData.phoneNumber);
+            formData.append("Governorate", applicationData.governorate);
+            formData.append("City", applicationData.city);
+            formData.append("Address", applicationData.address);
+            
+            if (applicationData.nationalIdImage && !applicationData.nationalIdImage.startsWith('http')) {
+                const imageFile = convertBase64ToFile(applicationData.nationalIdImage, 'national-id.jpg');
+                formData.append("NationalIdImage", imageFile);
+            }
+            
+            if (applicationData.storeImage && !applicationData.storeImage.startsWith('http')) {
+                const imageFile = convertBase64ToFile(applicationData.storeImage, 'store.jpg');
+                formData.append("StoreImage", imageFile);
+            }
+
+            const response = await profileService.applyForSeller(formData);
+            
+            // Store the application status locally and in localStorage
+            const statusData = {
+                status: 1, // Pending
+                message: response.message || "Application submitted successfully",
+                submittedAt: new Date().toISOString()
+            };
+            setSellerStatus(statusData);
+            localStorage.setItem('sellerStatus', JSON.stringify(statusData));
+            
+            toast.success(response.message || "Seller application submitted successfully!");
+            return response;
+        } catch (err) {
+            console.error("Seller application error:", err);
+            let errorMessage = "Failed to submit application";
+            if (err.response?.data?.detail) errorMessage = err.response.data.detail;
+            else if (err.response?.data?.description) errorMessage = err.response.data.description;
+            else if (err.response?.data?.errors) {
+                const errorsObj = err.response.data.errors;
+                const allErrors = Object.values(errorsObj).flat();
+                if (allErrors.length > 0) errorMessage = allErrors[0];
+            }
+            else if (err.response?.data?.title) errorMessage = err.response.data.title;
+            else if (err.response?.data?.message) errorMessage = err.response.data.message;
+            
+            toast.error(errorMessage);
+            throw err;
         }
-        // Handle simple message
-        else if (err.response?.data?.message) {
-            errorMessage = err.response.data.message;
-        }
-        
-        toast.error(errorMessage);
-        throw err;
-    }
-}, [convertBase64ToFile]);
+    }, [convertBase64ToFile]);
 
     // Clear statuses on logout
     const clearStatuses = useCallback(() => {
@@ -274,7 +252,6 @@ const submitSellerApplication = useCallback(async (applicationData) => {
     useEffect(() => {
         if (!authLoading && user) {
             fetchProfile();
-            // Don't fetch statuses from API - just use localStorage
         } else if (!authLoading && !user) {
             setLoading(false);
             setProfile(null);
@@ -289,13 +266,12 @@ const submitSellerApplication = useCallback(async (applicationData) => {
         fetchProfile,
         updateProfile,
         changePassword,
-        // Application statuses and functions
         boatOwnerStatus,
         sellerStatus,
         checkingStatus,
         submitBoatOwnerApplication,
         submitSellerApplication,
-        refreshStatuses: () => {}, // No-op function since we can't fetch from API
+        refreshStatuses: () => {}, 
         clearStatuses
     }), [profile, loading, authLoading, error, fetchProfile, updateProfile, changePassword, 
         boatOwnerStatus, sellerStatus, checkingStatus, submitBoatOwnerApplication, 
