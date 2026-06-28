@@ -3,8 +3,7 @@ import { motion } from "framer-motion";
 import { Clock as ClockIcon, Ticket, MapPin, Calendar, Users, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Helper if needed locally
-const getImageUrl = (url) => {
+ const getImageUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('data:')) return url;
   const baseUrl = import.meta.env.VITE_API_URL || 'https://hook.runasp.net';

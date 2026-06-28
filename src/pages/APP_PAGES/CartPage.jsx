@@ -109,7 +109,7 @@ const CartPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 m-cart-title">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent">
             Your Cart
           </h1>
         </div>

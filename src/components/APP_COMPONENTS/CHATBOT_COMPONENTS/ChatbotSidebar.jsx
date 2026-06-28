@@ -1,5 +1,3 @@
- 
-// src/components/APP_COMPONENTS/CHATBOT_COMPONENTS/ChatbotSidebar.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Star, Trash2, MessageSquare, X } from "lucide-react";
@@ -51,8 +49,7 @@ const ChatbotSidebar = ({ isSearchOpen, setIsSearchOpen }) => {
 
   return (
     <>
-      {/* --- GEMINI STYLE SEARCH MODAL --- */}
-      <AnimatePresence>
+       <AnimatePresence>
         {isSearchOpen && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -157,7 +154,7 @@ const ChatItem = ({ chat, isActive, onSelect, onStar, onDelete }) => (
       <span 
         className={`text-[14px] md:text-[15px] truncate transition-colors leading-relaxed ${isActive ? "text-white font-semibold" : "text-[#cee5ff] group-hover:text-white"}`}
         dir="auto"
-        style={{ fontFamily: "'Cairo', sans-serif" }} // Arabic font ONLY for the user's chat title
+        style={{ fontFamily: "'Cairo', sans-serif" }}
       >
         {chat.title}
       </span>

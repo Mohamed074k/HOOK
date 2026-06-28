@@ -1,6 +1,7 @@
 // src/pages/BOAT_OWNER_PAGES/GuideSettingsPage.js
 import { useState, useRef, useEffect } from "react";
-import { Camera, MapPin, Phone, Mail, Globe, Award, Fish, Lock, User, Save, Loader2 } from "lucide-react";
+import { Camera, MapPin, Phone, Mail, Lock, User, Save, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useProfile } from "../../context/ProfileContext";
 import { toast } from 'react-hot-toast';
 
@@ -58,6 +59,18 @@ const GuideSettingsPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Lock Body Scroll when Modal is open
+  useEffect(() => {
+    if (showPasswordModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showPasswordModal]);
+
   // Load profile data when available
   useEffect(() => {
     if (profile) {
@@ -112,7 +125,7 @@ const GuideSettingsPage = () => {
     );
   };
 
-const handleSave = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     
     // Validate required fields
@@ -145,6 +158,7 @@ const handleSave = async (e) => {
       setSaving(false);
     }
   };
+
   const handlePasswordChange = async () => {
     // Validate passwords
     if (!passwordForm.currentPassword) {
@@ -208,7 +222,7 @@ const handleSave = async (e) => {
             <button
               type="button"
               onClick={() => setShowPasswordModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200 cursor-pointer"
             >
               <Lock size={15} /> Change Password
             </button>
@@ -246,7 +260,7 @@ const handleSave = async (e) => {
               <button
                 type="button"
                 onClick={() => avatarRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 hover:border-white/10 text-sm font-medium transition-all duration-200 cursor-pointer"
               >
                 <Camera size={15} /> Upload Photo
               </button>
@@ -361,7 +375,7 @@ const handleSave = async (e) => {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-500 text-white font-bold hover:bg-sky-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-500 text-white font-bold hover:bg-sky-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
             {saving ? "Saving..." : "Save Profile"}
@@ -370,73 +384,94 @@ const handleSave = async (e) => {
       </form>
 
       {/* Change Password Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[#cee5ff] font-bold text-lg">Change Password</h3>
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="p-1 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label>Current Password</Label>
-                <input
-                  type="password"
-                  placeholder="Enter current password"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
-                />
+      <AnimatePresence>
+        {showPasswordModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => !changingPassword && setShowPasswordModal(false)}
+            className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[#cee5ff] font-bold text-lg">Change Password</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={changingPassword}
+                  className="p-1 rounded-lg text-[#a3cbf2]/40 hover:text-white hover:bg-white/5 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
               
-              <div>
-                <Label>New Password</Label>
-                <input
-                  type="password"
-                  placeholder="Enter new password (min 6 characters)"
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label>Current Password</Label>
+                  <input
+                    type="password"
+                    placeholder="Enter current password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <Label>New Password</Label>
+                  <input
+                    type="password"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Confirm New Password</Label>
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
+                  />
+                </div>
               </div>
               
-              <div>
-                <Label>Confirm New Password</Label>
-                <input
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full bg-[#001526] border border-white/5 rounded-xl px-4 py-2.5 text-[#cee5ff] text-sm focus:outline-none focus:border-sky-400/40 transition-all"
-                />
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={changingPassword}
+                  className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword}
+                  className="flex-1 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {changingPassword ? <Loader2 size={16} className="animate-spin" /> : null}
+                  {changingPassword ? "Changing..." : "Change Password"}
+                </button>
               </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-white/5 text-[#a3cbf2]/60 hover:text-white hover:bg-white/5 text-sm font-medium transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePasswordChange}
-                disabled={changingPassword}
-                className="flex-1 py-2.5 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {changingPassword ? <Loader2 size={16} className="animate-spin" /> : null}
-                {changingPassword ? "Changing..." : "Change Password"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         @keyframes fadeUp {

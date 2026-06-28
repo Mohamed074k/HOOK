@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/components/MobileRadialMenu.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Anchor, Package, LogOut, Menu, X } from 'lucide-react';
@@ -8,7 +7,6 @@ const MobileRadialMenu = ({ activeTab, setActiveTab, onLogout }) => {
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef(null);
 
-  // التأكد من حجم الشاشة
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -21,7 +19,7 @@ const MobileRadialMenu = ({ activeTab, setActiveTab, onLogout }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // إغلاق القائمة عند الضغط خارجها
+  // Close the modal when click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -38,21 +36,19 @@ const MobileRadialMenu = ({ activeTab, setActiveTab, onLogout }) => {
     };
   }, [isOpen]);
 
-  // إعدادات الزراير الطايرة (الزوايا من 0 لـ 90 عشان تفتح لفوق ويمين)
-  const navItems = [
+   const navItems = [
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-sky-400', bg: 'bg-[#002238]', border: 'border-sky-400/40', angle: 90 }, // فوق
     { id: 'trips', label: 'My Trips', icon: Anchor, color: 'text-emerald-400', bg: 'bg-[#002238]', border: 'border-emerald-400/40', angle: 60 },
     { id: 'orders', label: 'Orders', icon: Package, color: 'text-amber-400', bg: 'bg-[#002238]', border: 'border-amber-400/40', angle: 30 },
     { id: 'logout', label: 'Logout', icon: LogOut, color: 'text-rose-400', bg: 'bg-[#002238]', border: 'border-rose-400/40', angle: 0, isAction: true } // يمين
   ];
 
-  // دالة حساب مكان كل زرار بناءً على الزاوية (نص قطر الدائرة = 100px)
-  const RADIUS = 105;
+   const RADIUS = 105;
   const getPosition = (angle) => {
     const radians = angle * (Math.PI / 180);
     return {
       x: Math.round(RADIUS * Math.cos(radians)),
-      y: Math.round(-RADIUS * Math.sin(radians)) // سالب لأن الـ Y بيطلع لفوق
+      y: Math.round(-RADIUS * Math.sin(radians)) 
     };
   };
 
@@ -79,11 +75,9 @@ const MobileRadialMenu = ({ activeTab, setActiveTab, onLogout }) => {
         `}
       </style>
 
-      {/* نقطة الارتكاز الموحدة للقائمة والزرار الأساسي */}
-      <div ref={containerRef} className="fixed bottom-6 left-6 z-[99999]">
+       <div ref={containerRef} className="fixed bottom-6 left-6 z-[99999]">
         
-        {/* الخلفية المعتمة */}
-        <AnimatePresence>
+         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -138,8 +132,7 @@ const MobileRadialMenu = ({ activeTab, setActiveTab, onLogout }) => {
           })}
         </AnimatePresence>
 
-        {/* الزرار الأساسي */}
-        <motion.div
+         <motion.div
           initial={{ scale: 1 }}
           whileTap={{ scale: 0.9 }}
           className="relative z-50"

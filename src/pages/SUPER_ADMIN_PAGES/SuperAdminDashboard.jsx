@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
-import { Users, ShoppingBag, Fish, Ship, Package, ShoppingCart, TrendingUp, AlertCircle, ArrowUpRight, BarChart3, Calendar } from "lucide-react";
-
-const statsCards = [
-  { label: "Total Users", value: "12,481", change: "+8.2%", icon: Users, color: "text-sky-400", bg: "bg-sky-400/10" },
-  { label: "Total Trip Managers", value: "189", change: "+5.7%", icon: Fish, color: "text-teal-400", bg: "bg-teal-400/10" },
-  { label: "Total Sellers", value: "342", change: "+3.1%", icon: ShoppingBag, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-  { label: "Total Trips", value: "1,247", change: "+12.3%", icon: Ship, color: "text-sky-400", bg: "bg-sky-400/10" },
-  { label: "Total Products", value: "4,832", change: "+9.4%", icon: Package, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-  { label: "Total Orders", value: "2,156", change: "+15.2%", icon: ShoppingCart, color: "text-orange-400", bg: "bg-orange-400/10" },
-  { label: "Total Revenue", value: "$94.3K", change: "+12.4%", icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-400/10" },
-];
+import { Users, ShoppingBag, Fish, Ship, Package, ShoppingCart, TrendingUp, AlertCircle, ArrowUpRight, BarChart3, Calendar, Loader2 } from "lucide-react";
+import apiClient from "../../api/apiClient"; 
+import toast from "react-hot-toast";
 
 const alertTypeColors = {
   warning: "bg-yellow-400/10 text-yellow-400",
@@ -19,12 +11,62 @@ const alertTypeColors = {
 
 const SuperAdminDashboard = () => {
   const [animate, setAnimate] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Live Connected State DTO
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalTripManagers: 0,
+    totalSellers: 0,
+    totalTrips: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalBookings: 0,
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => setAnimate(true), 50);
+    fetchGlobalStats();
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchGlobalStats = async () => {
+    setLoading(true);
+    try {
+      const { data } = await apiClient.get("/api/AdminDashboard/stats");
+      if (data) {
+        setStats({
+          totalUsers: data.totalUsers || 0,
+          totalTripManagers: data.totalTripManagers || 0,
+          totalSellers: data.totalSellers || 0,
+          totalTrips: data.totalTrips || 0,
+          totalProducts: data.totalProducts || 0,
+          totalOrders: data.totalOrders || 0,
+          totalRevenue: data.totalRevenue || 0,
+          totalBookings: data.totalBookings || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch super admin dashboard stats:", error);
+      toast.error("Could not sync live platform statistics.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── Dynamic 8-Card Blueprint ───────────────────────────────────────────────
+  const statsCards = [
+    { label: "Total Users", value: loading ? "…" : stats.totalUsers.toLocaleString(), change: "+8.2%", icon: Users, color: "text-sky-400", bg: "bg-sky-400/10" },
+    { label: "Total Trip Managers", value: loading ? "…" : stats.totalTripManagers.toLocaleString(), change: "+5.7%", icon: Fish, color: "text-teal-400", bg: "bg-teal-400/10" },
+    { label: "Total Sellers", value: loading ? "…" : stats.totalSellers.toLocaleString(), change: "+3.1%", icon: ShoppingBag, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+    { label: "Total Trips", value: loading ? "…" : stats.totalTrips.toLocaleString(), change: "+12.3%", icon: Ship, color: "text-sky-400", bg: "bg-sky-400/10" },
+    { label: "Total Products", value: loading ? "…" : stats.totalProducts.toLocaleString(), change: "+9.4%", icon: Package, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+    { label: "Total Orders", value: loading ? "…" : stats.totalOrders.toLocaleString(), change: "+15.2%", icon: ShoppingCart, color: "text-orange-400", bg: "bg-orange-400/10" },
+    { label: "Total Bookings", value: loading ? "…" : stats.totalBookings.toLocaleString(), change: "+18.1%", icon: Calendar, color: "text-emerald-400", bg: "bg-emerald-400/10" }, // <-- Added 8th Card
+    { label: "Total Revenue", value: loading ? "…" : `$${stats.totalRevenue.toLocaleString()}`, change: "+12.4%", icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-400/10" },
+  ];
 
   return (
     <div className="space-y-8 pb-12 max-w-7xl mx-auto">
@@ -59,15 +101,16 @@ const SuperAdminDashboard = () => {
               </div>
               <ArrowUpRight size={16} className="text-[#a3cbf2]/20 group-hover:text-[#a3cbf2]/60 transition-all" />
             </div>
-           <p className="text-xl sm:text-3xl font-black text-[#cee5ff] tracking-tight">{value}</p>
+            <p className="text-xl sm:text-3xl font-black text-[#cee5ff] tracking-tight">{value}</p>
             <p className="text-[#a3cbf2]/50 text-xs sm:text-sm mt-1 truncate">{label}</p>
             <p className={`text-[10px] sm:text-xs mt-2 sm:mt-3 font-medium ${color} opacity-70 truncate`}>{change} this month</p>
           </div>
         ))}
       </div>
 
-      {/* Charts Section */}
+      {/* Charts Section - Locked Static */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Users Growth Chart */}
         <div 
           className="bg-[#002238] border border-white/5 rounded-2xl p-6 transform transition-all duration-700 ease-out"
@@ -135,7 +178,7 @@ const SuperAdminDashboard = () => {
             ))}
           </div>
           <div className="mt-4 pt-3 border-t border-white/5 flex justify-between text-xs text-[#a3cbf2]/30">
-            <span>${"94.3K"} MTD</span>
+            <span>$94.3K MTD</span>
             <span>↑ 12.4% vs last month</span>
           </div>
         </div>
@@ -176,7 +219,7 @@ const SuperAdminDashboard = () => {
           <span>↑ 14.9% vs last month</span>
         </div>
       </div>
- 
+
     </div>
   );
 };

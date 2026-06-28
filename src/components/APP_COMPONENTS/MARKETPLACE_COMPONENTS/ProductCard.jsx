@@ -5,7 +5,7 @@ import { ShoppingCart, Star, Package } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { toast } from "react-hot-toast";
 
-// Category mapping based on enum values
+// Categories
 const CATEGORY_NAMES = {
   1: "Fishing Rods",
   2: "Fishing Reels",
@@ -179,7 +179,7 @@ const ProductCard = ({ product, index, layout = "grid" }) => {
           </span>
           <div className="flex items-center gap-1.5">
             <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span className="text-sm font-bold text-amber-400">4.9</span>
+            <span className="text-sm font-bold text-amber-400">{product.averageRating || "0.0"}</span>
           </div>
         </div>
 

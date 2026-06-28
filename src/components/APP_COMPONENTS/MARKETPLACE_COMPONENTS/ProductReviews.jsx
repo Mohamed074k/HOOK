@@ -30,11 +30,11 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
 
     setIsSubmitting(true);
     try {
-      // 1. Fetch the user's purchase history to find the real order ID
+      // Fetch the user's purchase history to find the real order ID
       const ordersResponse = await apiClient.get("/api/marketplace/orders/admin-user/my-purchases");
       const userOrders = ordersResponse.data || [];
 
-      // 2. Find an eligible order: Status must be 3 (Delivered) AND contain the productId
+      // Find an eligible order: Status must be 3 (Delivered) AND contain the productId
       const eligibleOrder = userOrders.find(order => 
         order.status === 3 && 
         order.items?.some(item => item.productId === productId || item.id === productId)
@@ -46,7 +46,7 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
         return;
       }
 
-      // 3. Submit the review with the verified orderId
+      // Submit the review with the verified orderId
       await apiClient.post("/api/marketplace/reviews/admin-user/create", {
         orderId: eligibleOrder.id, 
         productId: productId,
@@ -60,8 +60,7 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
     } catch (error) {
       console.error("Error submitting review:", error);
       
-      // Look for the "description" field first, then "message", then fallback
-      const errorDesc = error.response?.data?.description;
+       const errorDesc = error.response?.data?.description;
       const errorMsg = error.response?.data?.message;
       
       toast.error(errorDesc || errorMsg || "Failed to submit review");
@@ -171,7 +170,7 @@ const ReviewModal = ({ isOpen, onClose, productId, onSuccess }) => {
 
 const ProductReviews = ({ productId, initialReviews = [], averageRating, reviewsCount }) => {
   const [reviews, setReviews] = useState(initialReviews);
-  const [hasFetched, setHasFetched] = useState(false); // New flag to prevent overwrites
+  const [hasFetched, setHasFetched] = useState(false); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -180,7 +179,7 @@ const ProductReviews = ({ productId, initialReviews = [], averageRating, reviews
       setIsLoading(true);
       const response = await apiClient.get(`/api/marketplace/reviews/allroles/${productId}`);
       setReviews(response.data || []);
-      setHasFetched(true); // Flag that we have live data, ignore initialReviews from now on
+      setHasFetched(true); 
     } catch (error) {
       console.error("Failed to refresh reviews:", error);
     } finally {
@@ -189,13 +188,11 @@ const ProductReviews = ({ productId, initialReviews = [], averageRating, reviews
   };
 
   useEffect(() => {
-    // Only use initialReviews if we haven't manually fetched new ones
     if (!hasFetched && initialReviews.length > 0) {
       setReviews(initialReviews);
     } else if (!hasFetched && productId && initialReviews.length === 0) {
       fetchReviews();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, initialReviews, hasFetched]);
 
   const formatDate = (dateString) => {

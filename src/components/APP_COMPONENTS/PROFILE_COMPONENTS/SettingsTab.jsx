@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/components/SettingsTab.jsx
 import React, { useState, useEffect } from "react";
 import { User, Camera, Lock, Eye, EyeOff, Anchor, Store, Clock, CheckCircle, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -96,7 +95,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
         <p className="text-sm text-[#a3cbf2]/60 mt-1">Manage your account preferences and security settings.</p>
       </div>
 
-      {/* Personal Information Section - Full width */}
+      {/* Personal Information Section */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }} 
         animate={{ opacity: 1, scale: 1 }} 
@@ -111,7 +110,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
         </div>
         
         <form onSubmit={handleProfileSubmit} className="p-6 space-y-5">
-          {/* Avatar + Email row (Redesigned) */}
+          {/* Avatar + Email */}
           <div className="flex items-center gap-6 pb-4">
             <div className="relative shrink-0">
               <div className="w-24 h-24 rounded-full bg-[#001526] border-2 border-white/10 flex items-center justify-center overflow-hidden shadow-lg">
@@ -148,7 +147,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
             </div>
           </div>
 
-          {/* Phone and Location in one row on desktop */}
+          {/* Phone and Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="text-xs text-[#a3cbf2]/60 mb-1.5 block">Phone Number</label>
@@ -167,7 +166,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
         </form>
       </motion.div>
 
-      {/* Security Section - Full width, stacked vertically like design */}
+      {/* Security Section */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }} 
         animate={{ opacity: 1, scale: 1 }} 
@@ -203,7 +202,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
             </div>
           </div>
 
-          {/* New Password and Confirm Password in one row on desktop */}
+          {/* New Password and Confirm Password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="text-xs text-[#a3cbf2]/60 mb-1.5 block">New Password</label>
@@ -345,8 +344,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
                 List your boats, manage trips, and connect with adventurers. Start earning by offering unforgettable sea experiences.
               </p>
               
-              {/* Added mt-auto here to push the button to the bottom */}
-              <div className="mt-auto w-full">
+               <div className="mt-auto w-full">
                 {!profile?.boatOwnerStatus || profile?.boatOwnerStatus === 3 ? (
                   <motion.button
                     onClick={() => setShowBoatOwnerModal(true)}
@@ -397,8 +395,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
                 Sell fishing gear, equipment, and accessories. Reach thousands of passionate anglers in our marketplace.
               </p>
               
-              {/* Added mt-auto here to push the button to the bottom */}
-              <div className="mt-auto w-full">
+               <div className="mt-auto w-full">
                 {!profile?.sellerStatus || profile?.sellerStatus === 3 ? (
                   <motion.button
                     onClick={() => setShowSellerModal(true)}
@@ -425,7 +422,7 @@ const SettingsTab = ({ profile, updateProfile, changePassword, boatOwnerStatus, 
 
  
 
-            {/* Boat Owner Application Modal */}
+      {/* Boat Owner Application Modal */}
       <BoatOwnerApplicationModal
         isOpen={showBoatOwnerModal}
         onClose={() => setShowBoatOwnerModal(false)}

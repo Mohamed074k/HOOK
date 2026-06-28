@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/components/Sidebar.jsx
 import React, { useState, useEffect } from "react";
 import { Settings, Anchor, Package, LogOut, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,7 +39,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
     }
   };
 
-  // Desktop Sidebar (always visible, full width)
+  // Desktop Sidebar
   if (!isMobile) {
     return (
       <div className="fixed left-0 top-0 h-screen w-64 bg-[#001526] border-r border-white/5 flex flex-col z-30 transition-all duration-300">
@@ -82,7 +81,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
     );
   }
 
-  // Mobile Sidebar (appears on hover)
+  // Mobile Sidebar
   return (
     <>
       {/* Small visible tab on hover area */}
@@ -116,7 +115,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/5">
                 <h2 className="text-lg font-bold text-[#cee5ff]">Menu</h2>
-                <div className="w-8" /> {/* Spacer for alignment */}
+                <div className="w-8" /> 
               </div>
 
               <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
@@ -128,8 +127,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
                       key={item.id}
                       onClick={() => {
                         setActiveTab(item.id);
-                        // Optional: auto-hide after click
-                        setTimeout(() => setIsHovered(false), 200);
+                         setTimeout(() => setIsHovered(false), 200);
                       }}
                       whileTap={{ scale: 0.98 }}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${

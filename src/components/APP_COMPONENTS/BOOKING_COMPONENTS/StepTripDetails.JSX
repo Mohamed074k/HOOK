@@ -39,8 +39,7 @@ const DateSelector = ({ dates, selectedDate, onSelectDate }) => {
           return (
             <motion.button
               key={index}
-              // Notice we pass BOTH date string and the ID
-              onClick={() => isAvailable && onSelectDate(full, dateItem.id)}
+               onClick={() => isAvailable && onSelectDate(full, dateItem.id)}
               whileHover={isAvailable ? { scale: 1.02, y: -2 } : {}}
               whileTap={isAvailable ? { scale: 0.98 } : {}}
               disabled={!isAvailable}

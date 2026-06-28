@@ -1,18 +1,30 @@
- 
-
 // src/pages/ChatbotPage.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, Sparkles, Anchor, Compass, Fish, Plus, Search } from "lucide-react";
+import { Send, Bot, Sparkles, Plus, Search } from "lucide-react";
 import ChatbotSidebar from "../../components/APP_COMPONENTS/CHATBOT_COMPONENTS/ChatbotSidebar";
 import { useChat } from "../../context/APP_CONTEXT/ChatbotContext";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";          
+import { useNavigate } from "react-router-dom"; 
 
 const ChatbotPage = () => {
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  
   const [input, setInput] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   const { messages, isStreaming, sendMessage, startNewChat } = useChat();
   const chatContainerRef = useRef(null);
+
+  // ─── Authentication Guard Loop (Mirroring Checkout Page) ───────────────────
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("Please login to access Fish Guard AI");
+      navigate("/login");
+    }
+  }, [user, authLoading, navigate]);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -50,7 +62,17 @@ const ChatbotPage = () => {
     }
   };
 
- 
+  // ─── Loading Glass State while validating JWT Token ────────────────────────
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#001526] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Prevent UI flashing if token validation fails completely during navigation flip
+  if (!user) return null;
 
   return (
     <div className="flex h-[calc(100dvh-80px)] bg-[#001526] text-[#cee5ff] overflow-hidden relative">
@@ -89,7 +111,7 @@ const ChatbotPage = () => {
         </div>
       </div>
 
-      {/* Main Chat Area - Full width on mobile, pl-24 on desktop to avoid floating icons */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden md:pl-24">
         
         {/* Ambient Background Glow */}
@@ -128,10 +150,7 @@ const ChatbotPage = () => {
                 </h1>
                 
                 <p className="text-[#a3cbf2]/80 max-w-md mx-auto mb-8 md:mb-12 text-[15px] md:text-base leading-relaxed px-4">
-                  Your intelligent maritime navigator. Ask about fishing spots, weather conditions, or gear recommendations.
-                </p>
-
- 
+                Your smart maritime compliance guide. Ask about restricted zones, banned fishing gear, and seasonal closures.                </p>
               </motion.div>
             )}
 
@@ -159,7 +178,7 @@ const ChatbotPage = () => {
                           : "bg-transparent text-[#cee5ff]"
                       }`}
                       dir="auto" 
-                      style={{ fontFamily: "'Cairo', sans-serif" }} // Arabic font ONLY for message content
+                      style={{ fontFamily: "'Cairo', sans-serif" }}
                     >
                       {msg.role === "ai" && isStreaming && index === messages.length - 1 && !msg.text && (
                          <div className="flex gap-1.5 items-center h-4">

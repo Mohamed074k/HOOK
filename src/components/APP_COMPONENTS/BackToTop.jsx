@@ -32,8 +32,7 @@ const BackToTop = () => {
     });
   };
 
-  // 2 * π * 26 ≈ 163.36
-  const circumference = 163.36;
+   const circumference = 163.36;
   const strokeDashoffset = circumference - (scrollProgress / 100) * circumference;
 
   return (
@@ -57,7 +56,7 @@ const BackToTop = () => {
                 cy="28"
                 r="26"
                 fill="none"
-                stroke="rgba(56, 189, 248, 0.15)" // Faint sky-400 track
+                stroke="rgba(56, 189, 248, 0.15)" 
                 strokeWidth="3"
               />
               <circle
@@ -65,7 +64,7 @@ const BackToTop = () => {
                 cy="28"
                 r="26"
                 fill="none"
-                stroke="#38bdf8" // Tailwind sky-400
+                stroke="#38bdf8" 
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -82,7 +81,7 @@ const BackToTop = () => {
             </div>
           </div>
           
-          {/* Percentage Text (Tooltip) */}
+          {/* Percentage Text */}
           <div 
             className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2.5 py-1 rounded-full text-xs font-bold shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 bg-[#002238] text-sky-400 border border-white/10 whitespace-nowrap"
           >

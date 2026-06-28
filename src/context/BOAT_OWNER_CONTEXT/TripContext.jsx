@@ -105,11 +105,18 @@ export const TripProvider = ({ children }) => {
             const newTrip = await tripService.createTrip(formData);
             
             if (tripData.availableDates && tripData.availableDates.length > 0) {
+                // Supports explicit endDate calculation during simultaneous creation
                 const datesData = {
-                    dates: tripData.availableDates.map(date => ({
-                        startDate: new Date(date).toISOString(),
-                        availableSeats: parseInt(tripData.maxParticipants)
-                    }))
+                    dates: tripData.availableDates.map(date => {
+                        const start = new Date(date);
+                        const end = new Date(start.getTime() + 86400000); // Defaults +24h if wizard input omits span
+
+                        return {
+                            startDate: start.toISOString(),
+                            endDate: end.toISOString(),
+                            availableSeats: Number(tripData.maxParticipants) || 0
+                        };
+                    })
                 };
                 
                 try {
@@ -120,7 +127,7 @@ export const TripProvider = ({ children }) => {
                 }
             }
             
-            setTrips(prev => [...prev, newTrip]);
+            await fetchTrips();
             toast.success(`Trip "${tripData.title}" created successfully`);
             return newTrip;
         } catch (err) {
@@ -129,7 +136,7 @@ export const TripProvider = ({ children }) => {
             toast.error(message);
             throw err;
         }
-    }, [isBoatOwner, convertBase64ToFile]);
+    }, [isBoatOwner, convertBase64ToFile, fetchTrips]);
 
     const updateTrip = useCallback(async (id, tripData) => {
         if (!isBoatOwner) {
@@ -199,12 +206,14 @@ export const TripProvider = ({ children }) => {
         }
     }, [isBoatOwner, convertBase64ToFile, fetchTrips]);
 
+    // Updated Payload Schema Method
     const addNewTripDates = useCallback(async (id, datesArray) => {
         try {
             const payload = {
                 dates: datesArray.map(d => ({
                     startDate: new Date(d.startDate).toISOString(),
-                    availableSeats: parseInt(d.availableSeats)
+                    endDate: new Date(d.endDate).toISOString(),
+                    availableSeats: Number(d.availableSeats) || 0
                 }))
             };
             await tripService.addTripDates(id, payload);
@@ -216,20 +225,17 @@ export const TripProvider = ({ children }) => {
         }
     }, [fetchTrips]);
 
-    // ─── TOGGLE DATE STATUS FUNCTION ─────────────────────────────────────────
     const toggleDateStatus = useCallback(async (dateId, isActive) => {
         try {
             await tripService.toggleDateStatus(dateId, isActive);
-            await fetchTrips(); // Refresh trips to get updated status
+            await fetchTrips(); 
             toast.success(`Date ${isActive ? 'activated' : 'deactivated'} successfully`);
             return true;
         } catch (err) {
             console.error("Toggle date status error:", err);
             const responseData = err.response?.data;
-            
-            // Check if backend prevents modification due to unrefunded payments
             const isUnrefundedError = responseData?.code === "Trip.DateHasUnrefundedBookings" || 
-                                     (responseData?.description || "").toLowerCase().includes("refund");
+                                   (responseData?.description || "").toLowerCase().includes("refund");
 
             if (isUnrefundedError) {
                 toast.error("Cannot deactivate date. You must refund all payments first.");
@@ -240,20 +246,17 @@ export const TripProvider = ({ children }) => {
         }
     }, [fetchTrips]);
 
-// ─── HARD DELETE DATE FUNCTION ───────────────────────────────────────────
     const deleteTripDate = useCallback(async (dateId) => {
         try {
             await tripService.hardDeleteTripDate(dateId);
-            await fetchTrips(); // Refresh trips to sync the deletion
+            await fetchTrips(); 
             toast.success('Date deleted permanently');
             return true;
         } catch (err) {
             console.error("Delete date error:", err);
-            
             const responseData = err.response?.data;
             const status = err.response?.status;
             
-            // Only show generic toast if it's NOT the specific refund errors we handle in the Modal Component
             const isUnrefundedError = responseData?.code === "Trip.DateHasUnrefundedBookings" || 
                                      (responseData?.description || "").toLowerCase().includes("refund");
             const isServerDependencyError = status === 500;
@@ -262,7 +265,7 @@ export const TripProvider = ({ children }) => {
                 toast.error(responseData?.title || responseData?.message || "Failed to delete date");
             }
             
-            throw err; // Re-throw to be caught by the component
+            throw err; 
         }
     }, [fetchTrips]);
 

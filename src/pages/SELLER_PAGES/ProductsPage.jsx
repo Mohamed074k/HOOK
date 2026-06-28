@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Pencil, Trash2, Eye, Package, ChevronDown, Filter, Loader2 } from "lucide-react";
 import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
@@ -25,7 +26,8 @@ const ProductsPage = () => {
     getCategoryName,
     getImageUrl,
     getProductDetails, 
-    isSeller
+    isSeller,
+    fetchProducts
   } = useProducts();
   
   const [animate, setAnimate] = useState(false);
@@ -33,19 +35,41 @@ const ProductsPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [editingId, setEditingId] = useState(null); 
   
-  // --- Modal States ---
   const [deleteId, setDeleteId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Initial page load animation
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => setAnimate(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  // --- Scroll Lock Hook for Modal ---
+  // Refresh products when component mounts and when navigating back
+  useEffect(() => {
+    const hasIncompleteProducts = products.some(p => 
+      !p.title || p.title === "Untitled Product" || 
+      p.price === undefined || p.price === null ||
+      !p.imageUrls || p.imageUrls.length === 0
+    );
+    
+    if (products.length > 0 && hasIncompleteProducts) {
+      fetchProducts();
+    }
+  }, [products.length]);
+
+  // Listen for navigation events to refresh products
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchProducts();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchProducts]);
+
   useEffect(() => {
     if (deleteId) {
       document.body.style.overflow = 'hidden';
@@ -53,22 +77,18 @@ const ProductsPage = () => {
       document.body.style.overflow = 'unset';
     }
     
-    // Cleanup function to ensure scrolling is restored if component unmounts
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [deleteId]);
 
-  // --- Modal Logic ---
   const confirmDelete = (id) => {
     setDeleteId(id);
-    // Tiny delay to ensure the DOM has mounted before triggering the CSS transition
     setTimeout(() => setIsModalVisible(true), 10);
   };
 
   const closeModal = () => {
     setIsModalVisible(false);
-    // Wait for the CSS transition (300ms) to finish before unmounting
     setTimeout(() => setDeleteId(null), 300);
   };
   
@@ -76,7 +96,8 @@ const ProductsPage = () => {
     setDeleting(true);
     try {
       await deleteProduct(deleteId);
-      closeModal(); // Animate out on success
+      closeModal(); 
+      await fetchProducts();
     } catch (error) {
       console.error("Delete error:", error);
     } finally {
@@ -95,6 +116,18 @@ const ProductsPage = () => {
       setEditingId(null);
     }
   };
+
+  // Check if we need to refresh when location changes (coming back from add page)
+  useEffect(() => {
+    const unlisten = () => {
+      setTimeout(() => {
+        fetchProducts();
+      }, 100);
+    };
+
+    window.addEventListener('popstate', unlisten);
+    return () => window.removeEventListener('popstate', unlisten);
+  }, [fetchProducts]);
 
   if (!isSeller) {
     return (
@@ -119,14 +152,13 @@ const ProductsPage = () => {
 
   return (
     <div className="space-y-6 pb-12 relative">
-      {/* Header */}
       <div 
         className={`flex items-center justify-between flex-wrap gap-3 transform transition-all duration-700 ease-out ${
           animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
         }`}
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">My Products</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]"> Products Management</h1>
           <p className="text-[#a3cbf2]/50 text-sm mt-1">{products.length} products found</p>
         </div>
         <button
@@ -137,7 +169,6 @@ const ProductsPage = () => {
         </button>
       </div>
 
-      {/* Search and Filter Bar */}
       <div 
         className={`flex flex-col sm:flex-row gap-3 transform transition-all duration-700 ease-out`}
         style={{
@@ -167,12 +198,10 @@ const ProductsPage = () => {
         </button>
       </div>
 
-      {/* Filter Panel */}
       {showFilters && (
         <div className="bg-[#002238] border border-white/5 rounded-2xl p-5 shadow-lg relative z-40 animate-[fadeDown_0.3s_ease-out]">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
             
-            {/* Category Filter */}
             <div className={`relative group ${openDropdown === 'category' ? 'z-50' : 'z-10'}`}>
               <label className="block text-[#a3cbf2]/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Category</label>
               <button
@@ -214,7 +243,6 @@ const ProductsPage = () => {
               </div>
             </div>
 
-            {/* Status Filter */}
             <div className={`relative group ${openDropdown === 'status' ? 'z-50' : 'z-10'}`}>
               <label className="block text-[#a3cbf2]/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Status</label>
               <button
@@ -256,7 +284,6 @@ const ProductsPage = () => {
               </div>
             </div>
 
-            {/* Price Range */}
             <div>
               <label className="block text-[#a3cbf2]/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Min Price</label>
               <input
@@ -288,7 +315,6 @@ const ProductsPage = () => {
         </div>
       )}
 
-      {/* Products Grid */}
       {products.length === 0 ? (
         <div 
           className="bg-[#002238] border border-white/5 rounded-2xl p-12 text-center transform transition-all duration-700 ease-out"
@@ -304,90 +330,181 @@ const ProductsPage = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 relative z-10">
-          {products.map((product, idx) => {
-            const stockStatus = getStockStatus(product.stockQuantity);
-            const imagePath = product.mainImageUrl || (product.imageUrls && product.imageUrls[0]);
-            const imageUrl = getImageUrl(imagePath);
-            
-            return (
-              <div
-                key={product.id}
-                className="group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transform transition-all duration-700 ease-out"
-                style={{
-                  opacity: animate ? 1 : 0,
-                  transform: animate ? "translateY(0)" : "translateY(30px)",
-                  transitionDelay: `${(idx + 2) * 100}ms`,
-                }}
-              >
-                {/* Image */}
-                <div className="h-44 bg-gradient-to-br from-sky-900 to-[#001526] flex items-center justify-center relative overflow-hidden">
-                  {imageUrl ? (
-                    <img src={imageUrl} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <Package size={40} className="text-[#a3cbf2]/20 group-hover:scale-110 transition-transform duration-500" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent opacity-60" />
-                  <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm z-10 ${stockStatus.className}`}>
-                    {stockStatus.text}
-                  </span>
-                </div>
+        <>
+          {/* Desktop Table View */}
+          <div 
+            className="hidden md:block bg-[#002238] border border-white/5 rounded-2xl overflow-x-auto transform transition-all duration-700 ease-out"
+            style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)", transitionDelay: "200ms" }}
+          >
+            <table className="w-full text-sm min-w-[800px]">
+              <thead className="bg-[#001526] border-b border-white/10">
+                <tr>
+                  {["Product", "Category", "Price", "Stock", "Status", ""].map((h, i) => (
+                    <th key={h} className={`text-left px-6 py-4 text-[#a3cbf2]/50 font-semibold text-xs uppercase tracking-wider ${i === 0 ? 'rounded-tl-2xl' : ''} ${i === 5 ? 'rounded-tr-2xl' : ''}`}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product, idx) => {
+                  const stockStatus = getStockStatus(product.stockQuantity);
+                  const imagePath = product.mainImageUrl || (product.imageUrls && product.imageUrls[0]);
+                  const imageUrl = getImageUrl(imagePath);
+                  
+                  return (
+                    <tr key={product.id || idx} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-[#001526] border border-white/5 overflow-hidden shrink-0">
+                            {imageUrl ? (
+                              <img src={imageUrl} alt={product.title || "Product"} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package size={20} className="text-[#a3cbf2]/20 m-auto mt-2.5" />
+                            )}
+                          </div>
+                          <span className="text-[#cee5ff] font-medium truncate max-w-[200px]">
+                            {product.title || "Untitled Product"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-[#a3cbf2]/60 text-sm">
+                        {getCategoryName(product.category)}
+                      </td>
+                      <td className="px-6 py-4 text-sky-400 font-bold">
+                        ${product.price !== undefined && product.price !== null ? product.price : "0.00"}
+                      </td>
+                      <td className="px-6 py-4 text-[#a3cbf2]/60 text-sm">
+                        {product.stockQuantity !== undefined && product.stockQuantity !== null ? product.stockQuantity : 0} units
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${stockStatus.className}`}>
+                          {stockStatus.text}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => navigate(`/seller/products/${product.id}`)}
+                            className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(product.id)}
+                            disabled={editingId === product.id}
+                            className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200 disabled:opacity-50"
+                            title="Edit"
+                          >
+                            {editingId === product.id ? <Loader2 size={16} className="animate-spin" /> : <Pencil size={16} />}
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(product.id)}
+                            className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-[#cee5ff] font-bold text-base group-hover:text-white transition-colors line-clamp-1">{product.title}</h3>
-                      <p className="text-[#a3cbf2]/50 text-xs mt-1 font-medium">{getCategoryName(product.category)}</p>
+          {/* Mobile/Tablet Cards View */}
+          <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-5 relative z-10">
+            {products.map((product, idx) => {
+              const stockStatus = getStockStatus(product.stockQuantity);
+              const imagePath = product.mainImageUrl || (product.imageUrls && product.imageUrls[0]);
+              const imageUrl = getImageUrl(imagePath);
+              
+              return (
+                <div
+                  key={product.id || idx}
+                  className="group bg-[#002238] border border-white/5 rounded-2xl overflow-hidden hover:border-sky-400/20 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-400/5 ring-1 ring-transparent hover:ring-sky-400/10 transform transition-all duration-700 ease-out"
+                  style={{
+                    opacity: animate ? 1 : 0,
+                    transform: animate ? "translateY(0)" : "translateY(30px)",
+                    transitionDelay: `${(idx + 2) * 100}ms`,
+                  }}
+                >
+                  <div className="h-44 bg-gradient-to-br from-sky-900 to-[#001526] flex items-center justify-center relative overflow-hidden">
+                    {imageUrl ? (
+                      <img src={imageUrl} alt={product.title || "Product"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <Package size={40} className="text-[#a3cbf2]/20 group-hover:scale-110 transition-transform duration-500" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#002238] via-transparent to-transparent opacity-60" />
+                    <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm z-10 ${stockStatus.className}`}>
+                      {stockStatus.text}
+                    </span>
+                  </div>
+
+                  <div className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-[#cee5ff] font-bold text-base group-hover:text-white transition-colors line-clamp-1">
+                          {product.title || "Untitled Product"}
+                        </h3>
+                        <p className="text-[#a3cbf2]/50 text-xs mt-1 font-medium">
+                          {getCategoryName(product.category)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-4">
+                      <span className="text-sky-400 font-black text-xl">
+                        ${product.price !== undefined && product.price !== null ? product.price : "0.00"}
+                      </span>
+                    </div>
+
+                    <p className="text-[#a3cbf2]/40 text-xs mt-2">
+                      Stock: {product.stockQuantity !== undefined && product.stockQuantity !== null ? product.stockQuantity : 0} units
+                    </p>
+
+                    <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-white/5">
+                      <button
+                        onClick={() => navigate(`/seller/products/${product.id}`)}
+                        className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleEdit(product.id)}
+                        disabled={editingId === product.id}
+                        className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200 disabled:opacity-50"
+                        title="Edit"
+                      >
+                        {editingId === product.id ? <Loader2 size={16} className="animate-spin" /> : <Pencil size={16} />}
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(product.id)}
+                        className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3 mt-4">
-                    <span className="text-sky-400 font-black text-xl">${product.price}</span>
-                  </div>
-
-                  <p className="text-[#a3cbf2]/40 text-xs mt-2">Stock: {product.stockQuantity} units</p>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-white/5">
-                    <button
-                      onClick={() => navigate(`/seller/products/${product.id}`)}
-                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
-                      title="View Details"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleEdit(product.id)}
-                      disabled={editingId === product.id}
-                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-[#cee5ff] hover:bg-white/5 transition-all duration-200 disabled:opacity-50"
-                      title="Edit"
-                    >
-                      {editingId === product.id ? <Loader2 size={16} className="animate-spin" /> : <Pencil size={16} />}
-                    </button>
-                    <button
-                      onClick={() => confirmDelete(product.id)}
-                      className="p-2 rounded-lg text-[#a3cbf2]/30 hover:text-red-400 hover:bg-red-400/10 transition-all duration-200"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {/* --- Animated Delete Modal --- */}
-      {deleteId && (
+      {/* Teleported directly to <body> so sidebar gets blurred too! */}
+      {deleteId && createPortal(
         <div 
-          className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-300 ${
+          className={`fixed inset-0 z-[99999] flex items-center justify-center p-4 transition-all duration-300 ${
             isModalVisible ? 'opacity-100 visible' : 'opacity-0 invisible'
           }`}
         >
-          {/* Full-screen Backdrop (Clicks outside close the modal unless deleting) */}
           <div 
             className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
               isModalVisible ? 'opacity-100' : 'opacity-0'
@@ -395,7 +512,6 @@ const ProductsPage = () => {
             onClick={!deleting ? closeModal : undefined}
           />
 
-          {/* Modal Container */}
           <div 
             className={`relative bg-[#002238] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl transition-all duration-300 transform ${
               isModalVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'
@@ -421,7 +537,8 @@ const ProductsPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <style>{`

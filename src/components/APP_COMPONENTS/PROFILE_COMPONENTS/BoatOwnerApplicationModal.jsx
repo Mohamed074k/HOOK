@@ -97,8 +97,6 @@ const handleSubmit = async (e) => {
         vodafoneCashNumber: ""
       });
     } catch (error) {
-      // Error is already shown via toast from context
-      // Keep modal open so user can try again
       console.error("Submission error:", error);
     } finally {
       setLoading(false);

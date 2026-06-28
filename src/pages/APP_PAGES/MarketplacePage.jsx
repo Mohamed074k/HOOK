@@ -116,12 +116,12 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <div ref={heroRef} className="text-center mb-10">
-      <div className="hero-badge inline-flex items-center gap-2 bg-sky-500/10 rounded-full px-4 py-1.5 mb-4 border border-sky-400/20">
+    <div ref={heroRef} className="text-center mb-12">
+      <div className="hero-badge inline-flex items-center gap-2 bg-sky-500/10 rounded-full px-3 py-1 mb-4 border border-sky-400/20">
         <Sparkles size={16} className="text-sky-400" />
         <span className="text-xs text-sky-300 font-bold tracking-widest uppercase">The Gear Locker</span>
       </div>
-      <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent mb-4">
+      <h1 className="hero-title text-5xl md:text-6xl font-black bg-gradient-to-r from-[#cee5ff] via-sky-300 to-[#53D6FB] bg-clip-text text-transparent mb-3 pb-2">
         Equip the Voyage
       </h1>
       <p className="hero-subtitle text-[#a3cbf2]/60 text-lg max-w-2xl mx-auto">

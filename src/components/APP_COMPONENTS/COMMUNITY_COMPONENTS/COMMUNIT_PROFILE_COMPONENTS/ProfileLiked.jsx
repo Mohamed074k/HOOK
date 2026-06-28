@@ -1,5 +1,4 @@
-// src/components/APP_COMPONENTS/COMMUNITY_COMPONENTS/ProfileLiked.jsx
-import React from "react";
+ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCard from "../PostCard";
 import { PostSkeleton } from "../CommunitySkeletons";

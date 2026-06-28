@@ -1,5 +1,4 @@
-// src/components/APP_COMPONENTS/HOME_COMPONENTS/CommunitySection.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { MessageSquare, Heart, Quote, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +10,6 @@ import apiClient from "../../../api/apiClient";
 import 'swiper/css';
 import 'swiper/css/free-mode';
 
-// --- Utilities ---
 const getImageUrl = (url) => {
   if (!url) return null;
   if (url.startsWith("http") || url.startsWith("data:")) return url;
@@ -39,7 +37,6 @@ const timeAgo = (dateString) => {
   return `${days}d ago`;
 };
 
-// --- Animation Variants ---
 const headerVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
@@ -55,7 +52,12 @@ const CommunitySection = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     const fetchCommunityPosts = async () => {
       try {
         setIsLoading(true);
@@ -74,8 +76,6 @@ const CommunitySection = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-0 md:px-8 py-16 overflow-hidden">
-      
-      {/* --- Centered Header --- */}
       <motion.div 
         className="flex flex-col items-center text-center mb-8 md:mb-12 px-4 md:px-0"
         initial="hidden"
@@ -93,7 +93,6 @@ const CommunitySection = () => {
         </p>
       </motion.div>
 
-      {/* --- Swiper Carousel --- */}
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -115,7 +114,6 @@ const CommunitySection = () => {
           className="pb-8 pt-4 !-mt-4"
         >
           {isLoading ? (
-            /* Loading Skeletons */
             [...Array(4)].map((_, i) => (
               <SwiperSlide key={`skeleton-${i}`} className="h-auto">
                 <div className="bg-[#002238] border border-white/5 rounded-2xl p-4 h-64 animate-pulse flex flex-col">
@@ -136,7 +134,6 @@ const CommunitySection = () => {
               </SwiperSlide>
             ))
           ) : posts.length > 0 ? (
-            /* Community Posts */
             posts.map((post) => (
               <SwiperSlide key={post.id} className="h-auto">
                 <motion.div
@@ -144,9 +141,8 @@ const CommunitySection = () => {
                   whileHover={{ y: -4, boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}
                   onClick={() => navigate("/community")}
                 >
-                  <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-sky-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 blur-lg transition-opacity duration-500 pointer-events-none" />
+                  <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-sky-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                  {/* Header: User Info */}
                   <div 
                     className="p-4 flex items-center gap-3 border-b border-white/5 relative z-10 cursor-pointer group/user"
                     onClick={(e) => {
@@ -168,7 +164,6 @@ const CommunitySection = () => {
                     </div>
                   </div>
 
-                  {/* Post Image (Conditional) */}
                   {post.postImageUrl && (
                     <div className="relative h-36 overflow-hidden flex-shrink-0">
                       <img 
@@ -181,7 +176,6 @@ const CommunitySection = () => {
                     </div>
                   )}
 
-                  {/* Body: Content & Stats */}
                   <div className="p-4 flex flex-col flex-1 relative z-10">
                     <div className="flex mb-4">
                       <Quote size={14} className="text-sky-400/50 flex-shrink-0 mt-0.5 mr-1" />
@@ -191,8 +185,6 @@ const CommunitySection = () => {
                     </div>
                     
                     <div className="mt-auto pt-3 border-t border-white/5 flex items-center gap-4 text-[#a3cbf2]/60 text-xs font-semibold">
-                      
-                      {/* Like Button mapped to match PostCard */}
                       <div className={`flex items-center gap-1.5 transition-colors ${post.likesCount > 0 ? 'text-rose-400' : 'hover:text-rose-400'}`}>
                         <Heart size={14} className={post.likesCount > 0 ? "fill-rose-400 text-rose-400" : ""} />
                         <span>{post.likesCount}</span>
@@ -208,9 +200,8 @@ const CommunitySection = () => {
               </SwiperSlide>
             ))
           ) : (
-            /* Empty State */
             <div className="w-full py-12 text-center text-[#a3cbf2]/60">
-              No recent community stories.
+              No recent community feeds.
             </div>
           )}
         </Swiper>

@@ -25,7 +25,7 @@ const NotificationsModal = ({ isOpen, onClose }) => {
       const fetchNotifs = async () => {
         setIsLoading(true);
         try {
-          const data = await getNotifications(1, 50); // Fetching first 50
+          const data = await getNotifications(1, 50);
           setNotifications(data || []);
         } catch (error) {
           toast.error("Failed to load notifications");
@@ -97,7 +97,7 @@ const NotificationsModal = ({ isOpen, onClose }) => {
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-[10px] text-[#a3cbf2]/50">{formatDate(notif.createdOn)}</span>
                         
-                        {/* Explicit "Mark as read" Button */}
+                        {/* "Mark as read" Button */}
                         {!notif.isRead && (
                           <button 
                             onClick={() => handleMarkAsRead(notif.id)}

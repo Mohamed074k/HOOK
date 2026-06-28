@@ -1,80 +1,111 @@
-import { Package, ShoppingCart, Star, DollarSign, ArrowUpRight, Plus, Eye } from "lucide-react";
+import { Package, ShoppingCart, Star, DollarSign, ArrowUpRight, Plus, Eye, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../api/apiClient";
+import toast from "react-hot-toast";
 
-const cards = [
-  {
-    label: "Total Products",
-    value: "42",
-    icon: Package,
-    color: "text-sky-400",
-    bg: "bg-sky-400/10",
-    ring: "hover:ring-sky-400/20",
-    glow: "hover:shadow-sky-400/5",
-    trend: "3 added this week",
-  },
-  {
-    label: "Active Products",
-    value: "38",
-    icon: Package,
-    color: "text-teal-400",
-    bg: "bg-teal-400/10",
-    ring: "hover:ring-teal-400/20",
-    glow: "hover:shadow-teal-400/5",
-    trend: "4 out of stock",
-  },
-  {
-    label: "Total Orders",
-    value: "156",
-    icon: ShoppingCart,
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-    ring: "hover:ring-yellow-400/20",
-    glow: "hover:shadow-yellow-400/5",
-    trend: "+12 this month",
-  },
-  {
-    label: "Monthly Revenue",
-    value: "$8,420",
-    icon: DollarSign,
-    color: "text-emerald-400",
-    bg: "bg-emerald-400/10",
-    ring: "hover:ring-emerald-400/20",
-    glow: "hover:shadow-emerald-400/5",
-    trend: "+18% vs last month",
-  },
-];
-
-const recentOrders = [
-  { id: "#ORD-1201", user: "Mohamed Elsayed", total: "$849", status: "Shipped" },
-  { id: "#ORD-1200", user: "Ahmed Hafez", total: "$1,299", status: "Processing" },
-  { id: "#ORD-1199", user: "Mohamed Elsayed", total: "$145", status: "Delivered" },
-];
-
-const recentReviews = [
-  { product: "Apex Carbon Reel", user: "Mohamed S.", rating: 5, comment: "Best reel ever!" },
-  { product: "HydroScan V3", user: "Ahmed H.", rating: 5, comment: "Game-changer!" },
-  { product: "Deep Bait Master", user: "Mohamed S.", rating: 4, comment: "Great lures." },
-];
-
-const statusStyles = {
-  Delivered: "bg-sky-400/10 text-sky-400",
-  Shipped: "bg-teal-400/10 text-teal-400",
-  Processing: "bg-yellow-400/10 text-yellow-400",
-  Cancelled: "bg-[#a3cbf2]/10 text-[#a3cbf2]/50",
+// Status Mapper
+const STATUS_MAP = {
+  DeliveredConfirmedByBuyer: { text: "Delivered", style: "bg-sky-400/10 text-sky-400" },
+  OutForDelivery: { text: "Shipped", style: "bg-teal-400/10 text-teal-400" },
+  Processing: { text: "Processing", style: "bg-yellow-400/10 text-yellow-400" },
+  Cancelled: { text: "Cancelled", style: "bg-[#a3cbf2]/10 text-[#a3cbf2]/50" },
 };
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
   const [animate, setAnimate] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Scroll to top and trigger animation on mount
+  //  Live Data States
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    activeProducts: 0,
+    totalOrders: 0,
+    monthlyRevenue: 0,
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentReviews, setRecentReviews] = useState([]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Trigger animation after a tiny delay
     const timer = setTimeout(() => setAnimate(true), 50);
+    fetchDashboardData();
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Fires all 3 network calls concurrently for instant loading
+      const [statsRes, ordersRes, reviewsRes] = await Promise.all([
+        apiClient.get("/api/marketplace/seller/dashboard/statistics"),
+        apiClient.get("/api/marketplace/seller/dashboard/recent-orders?count=5"),
+        apiClient.get("/api/marketplace/seller/dashboard/recent-reviews?count=5"),
+      ]);
+
+      if (statsRes.data) {
+        setStats({
+          totalProducts: statsRes.data.totalProducts || 0,
+          activeProducts: statsRes.data.activeProducts || 0,
+          totalOrders: statsRes.data.totalOrders || 0,
+          monthlyRevenue: statsRes.data.monthlyRevenue || 0,
+        });
+      }
+
+      setRecentOrders(ordersRes.data || []);
+      setRecentReviews(reviewsRes.data || []);
+    } catch (err) {
+      console.error("Dashboard Sync Failed:", err);
+      toast.error("Failed to sync live dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Dynamic Stat Cards Blueprint
+  const cards = [
+    {
+      label: "Total Products",
+      value: loading ? "…" : stats.totalProducts.toLocaleString(),
+      icon: Package,
+      color: "text-sky-400",
+      bg: "bg-sky-400/10",
+      ring: "hover:ring-sky-400/20",
+      glow: "hover:shadow-sky-400/5",
+      trend: "Total catalog inventory",
+    },
+    {
+      label: "Active Products",
+      value: loading ? "…" : stats.activeProducts.toLocaleString(),
+      icon: Package,
+      color: "text-teal-400",
+      bg: "bg-teal-400/10",
+      ring: "hover:ring-teal-400/20",
+      glow: "hover:shadow-teal-400/5",
+      trend: "Currently visible to buyers",
+    },
+    {
+      label: "Total Orders",
+      value: loading ? "…" : stats.totalOrders.toLocaleString(),
+      icon: ShoppingCart,
+      color: "text-yellow-400",
+      bg: "bg-yellow-400/10",
+      ring: "hover:ring-yellow-400/20",
+      glow: "hover:shadow-yellow-400/5",
+      trend: "Lifetime processed fulfillments",
+    },
+    {
+      label: "Monthly Revenue",
+      value: loading ? "…" : `$${stats.monthlyRevenue.toLocaleString()}`,
+      icon: DollarSign,
+      color: "text-emerald-400",
+      bg: "bg-emerald-400/10",
+      ring: "hover:ring-emerald-400/20",
+      glow: "hover:shadow-emerald-400/5",
+      trend: "Earnings recorded this month",
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -128,11 +159,10 @@ const SellerDashboard = () => {
               </div>
               <ArrowUpRight size={16} className="text-[#a3cbf2]/20 group-hover:text-[#a3cbf2]/60 transition-all" />
             </div>
-          {/* Value */}
+            
             <p className="text-2xl sm:text-3xl font-black text-[#cee5ff] tracking-tight">{value}</p>
             <p className="text-[#a3cbf2]/50 text-xs sm:text-sm mt-0.5 sm:mt-1">{label}</p>
 
-            {/* Trend */}
             <p className={`text-[10px] sm:text-xs mt-2 sm:mt-3 font-medium ${color} opacity-70`}>
               {trend}
             </p>
@@ -142,6 +172,7 @@ const SellerDashboard = () => {
 
       {/* Recent Orders & Reviews Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Recent Orders */}
         <div
           className={`bg-[#002238] border border-white/5 rounded-2xl overflow-hidden transform transition-all duration-700 delay-200 ease-out ${
@@ -154,29 +185,41 @@ const SellerDashboard = () => {
               View all <ArrowUpRight size={12} />
             </button>
           </div>
+          
           <div className="divide-y divide-white/5">
-            {recentOrders.map((order, idx) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between px-6 py-4 hover:bg-white/[0.03] transition-colors"
-                style={{
-                  animation: animate ? `slideIn 0.5s ease-out ${idx * 0.1}s forwards` : "none",
-                  opacity: 0,
-                  transform: "translateX(-20px)",
-                }}
-              >
-                <div>
-                  <p className="text-[#cee5ff] font-medium text-sm">{order.id}</p>
-                  <p className="text-[#a3cbf2]/40 text-xs mt-0.5">{order.user}</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sky-400 text-sm font-bold">{order.total}</span>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusStyles[order.status] || ""}`}>
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {loading ? (
+              <div className="py-12 flex justify-center"><Loader2 size={24} className="text-sky-400 animate-spin" /></div>
+            ) : recentOrders.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[#a3cbf2]/30">No orders recorded yet.</div>
+            ) : (
+              recentOrders.map((order, idx) => {
+                const uiStatus = STATUS_MAP[order.status] || { text: order.status || "Pending", style: "bg-white/5 text-[#a3cbf2]/60" };
+                const shortId = order.orderId ? `#ORD-${order.orderId.slice(0, 6).toUpperCase()}` : "#ORD-????";
+
+                return (
+                  <div
+                    key={order.orderId || idx}
+                    className="flex items-center justify-between px-6 py-4 hover:bg-white/[0.03] transition-colors"
+                    style={{
+                      animation: animate ? `slideIn 0.5s ease-out ${idx * 0.1}s forwards` : "none",
+                      opacity: 0,
+                      transform: "translateX(-20px)",
+                    }}
+                  >
+                    <div>
+                      <p className="text-[#cee5ff] font-medium text-sm">{shortId}</p>
+                      <p className="text-[#a3cbf2]/40 text-xs mt-0.5">{order.buyerName || "Guest Buyer"}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sky-400 text-sm font-bold">${order.total?.toLocaleString() || "0"}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${uiStatus.style}`}>
+                        {uiStatus.text}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -188,36 +231,51 @@ const SellerDashboard = () => {
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <h2 className="text-base font-bold text-[#cee5ff]">Recent Reviews</h2>
-            <button onClick={() => navigate("/seller/reviews")} className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium flex items-center gap-1">
+            <button  className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium flex items-center gap-1">
               View all <ArrowUpRight size={12} />
             </button>
           </div>
+
           <div className="divide-y divide-white/5">
-            {recentReviews.map((review, idx) => (
-              <div
-                key={idx}
-                className="px-6 py-4 hover:bg-white/[0.03] transition-colors"
-                style={{
-                  animation: animate ? `slideIn 0.5s ease-out ${idx * 0.1}s forwards` : "none",
-                  opacity: 0,
-                  transform: "translateX(-20px)",
-                }}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[#cee5ff] font-medium text-sm">{review.product}</p>
-                  <span className="text-yellow-400 text-sm tracking-widest">
-                    {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
-                  </span>
-                </div>
-                <p className="text-[#a3cbf2]/60 text-xs">{review.user}</p>
-                <p className="text-[#a3cbf2]/50 text-xs mt-1 line-clamp-1">"{review.comment}"</p>
-              </div>
-            ))}
+            {loading ? (
+              <div className="py-12 flex justify-center"><Loader2 size={24} className="text-sky-400 animate-spin" /></div>
+            ) : recentReviews.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[#a3cbf2]/30">No reviews received yet.</div>
+            ) : (
+              recentReviews.map((review, idx) => {
+                const safeRating = Math.min(Math.max(review.rating || 5, 1), 5);
+
+                return (
+                  <div
+                    key={review.reviewId || idx}
+                    className="px-6 py-4 hover:bg-white/[0.03] transition-colors"
+                    style={{
+                      animation: animate ? `slideIn 0.5s ease-out ${idx * 0.1}s forwards` : "none",
+                      opacity: 0,
+                      transform: "translateX(-20px)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[#cee5ff] font-medium text-sm truncate max-w-[200px] sm:max-w-[280px]">
+                        {review.productTitle || "Marketplace Item"}
+                      </p>
+                      <span className="text-yellow-400 text-sm tracking-widest shrink-0 ml-2">
+                        {"★".repeat(safeRating)}{"☆".repeat(5 - safeRating)}
+                      </span>
+                    </div>
+                    <p className="text-[#a3cbf2]/60 text-xs">{review.buyerName || "Anonymous Angler"}</p>
+                    <p className="text-[#a3cbf2]/50 text-xs mt-1 line-clamp-1 italic">
+                      "{review.comment || "No written feedback provided."}"
+                    </p>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
+
       </div>
 
-      {/* Add animation keyframes */}
       <style>{`
         @keyframes slideIn {
           0% {

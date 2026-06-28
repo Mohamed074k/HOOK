@@ -14,7 +14,7 @@ const getImageUrl = (url) => {
 };
 
 const NAV_LINKS = [
-  { to: "/",        label: "Home" },
+  { to: "/",         label: "Home" },
   { to: "/trips",      label: "Trips" },
   { to: "/marketplace",label: "Marketplace" },
   { to: "/community",  label: "Community" },
@@ -87,7 +87,7 @@ const Navbar = () => {
     }
     return () => {
       document.body.style.overflow = "unset";
-    }
+    };
   }, [menuOpen]);
 
   const itemVariants = {
@@ -205,7 +205,6 @@ const Navbar = () => {
                   onClick={() => setCartOpen(false)}
                 >
                   <ShoppingCart size={20} />
-                  {/* Dynamic Cart Badge */}
                   <AnimatePresence>
                     {cartCount > 0 && (
                       <motion.span
@@ -242,7 +241,6 @@ const Navbar = () => {
                             Recent Items
                           </h3>
                           
-                          {/* Item List Preview */}
                           <div className="max-h-60 overflow-y-auto pr-1 space-y-3 mb-4 custom-scrollbar">
                             {cartItems.map((item) => (
                               <div key={item.id} className="flex items-center gap-3 bg-[#001526] p-2 rounded-xl border border-white/5 group">
@@ -267,6 +265,7 @@ const Navbar = () => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
+                                    e.preventDefault();
                                     removeFromCart(item.id);
                                   }}
                                   className="p-1.5 text-rose-400/50 hover:text-rose-400 hover:bg-rose-400/10 rounded transition-colors"
@@ -277,7 +276,6 @@ const Navbar = () => {
                             ))}
                           </div>
 
-                          {/* Footer */}
                           <div className="border-t border-white/10 pt-3 flex flex-col gap-3">
                             <div className="flex justify-between items-center text-sm font-bold">
                               <span className="text-[#a3cbf2]/60">Subtotal:</span>
@@ -299,7 +297,7 @@ const Navbar = () => {
               </motion.div>
             )}
 
-            {/* User Avatar / Dashboard / Sign In */}
+            {/* User Avatar / Dashboard */}
             <motion.div
               variants={itemVariants}
               initial="initial"
@@ -367,7 +365,7 @@ const Navbar = () => {
               animate="visible"
               exit="hidden"
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-sm z-40 md:hidden"
               onClick={() => setMenuOpen(false)}
             />
             

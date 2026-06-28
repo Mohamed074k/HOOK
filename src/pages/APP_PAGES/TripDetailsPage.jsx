@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/TripDetailsPage.jsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -16,7 +15,6 @@ import toast from "react-hot-toast";
 
 const ease = [0.25, 0.46, 0.45, 0.94];
 
-// Helper function to get image URL
 const getImageUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('data:')) return url;
@@ -24,7 +22,6 @@ const getImageUrl = (url) => {
   return `${baseUrl}${url}`;
 };
 
-// ─── Animated Background ─────────────────────────────────────────────────────
 const AnimatedBackground = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
     <motion.div
@@ -42,7 +39,6 @@ const AnimatedBackground = React.memo(() => (
   </div>
 ));
 
-// ─── Review Card Component ────────────────────────────────────────────────
 const ReviewCard = ({ review }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -80,7 +76,6 @@ const ReviewCard = ({ review }) => {
   );
 };
 
-// ─── Optimized Image Carousel Component ─────────────────────────────────────
 const ImageCarousel = React.memo(({ images, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -212,7 +207,6 @@ const ImageCarousel = React.memo(({ images, title }) => {
   );
 });
 
-// ─── Share Menu Component ────────────────────────────────────────────────────
 const ShareMenu = React.memo(({ onClose }) => {
   const shareUrl = window.location.href;
   
@@ -250,7 +244,6 @@ const ShareMenu = React.memo(({ onClose }) => {
   );
 });
 
-// ─── Info Card Component ────────────────────────────────────────────────────
 const InfoCard = React.memo(({ children, title, icon: Icon }) => (
   <motion.div
     className="bg-[#002238] border border-white/5 rounded-2xl p-6 hover:border-sky-400/30 transition-colors duration-300 shadow-sm"
@@ -265,7 +258,6 @@ const InfoCard = React.memo(({ children, title, icon: Icon }) => (
   </motion.div>
 ));
 
-// ─── Main TripDetailsPage Component ─────────────────────────────────────────
 const TripDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -277,7 +269,6 @@ const TripDetailsPage = () => {
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
 
-  // Fetch trip details
   useEffect(() => {
     const fetchTripDetails = async () => {
       setLoading(true);
@@ -297,7 +288,6 @@ const TripDetailsPage = () => {
     }
   }, [id]);
 
-  // Fetch reviews only (NO add review functionality)
   useEffect(() => {
     const fetchReviews = async () => {
       if (!id) return;
@@ -324,8 +314,6 @@ const TripDetailsPage = () => {
   }, [id]);
 
   const handleBookNow = useCallback(() => {
-    // Navigate to the booking page passing the trip details.
-    // Date and Passenger selection is now fully handled inside the booking page.
     navigate(`/trip/${trip.id}/book`, {
       state: { trip }
     });
@@ -346,11 +334,9 @@ const TripDetailsPage = () => {
     setShowShareMenu(false);
   }, []);
   
-    // Scroll to top on page load
-      useEffect(() => {
-        window.scrollTo(0, 0);
-      }, []);
-      
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (loading) {
     return (
@@ -380,7 +366,7 @@ const TripDetailsPage = () => {
     );
   }
 
-  const activeTripDates = trip.tripDates?.filter(date => date.isActive && date.availableSeats > 0) || [];
+  const activeTripDates = trip.tripDates?.filter(date => date.isActive && date.availableSeats >= 0) || [];
   const mainImage = trip.mainImageUrl || trip.images?.find(img => img.isMainImage)?.imageUrl || trip.images?.[0]?.imageUrl;
   
   const carouselImages = trip.images?.length > 0 
@@ -443,8 +429,8 @@ const TripDetailsPage = () => {
                     <p className="text-[#a3cbf2]/60 text-xs">Duration</p>
                     <p className="text-[#cee5ff] font-semibold text-sm">
                       {trip.tripDates?.[0] ? 
-                        `${Math.ceil((new Date(trip.tripDates[0].endDate) - new Date(trip.tripDates[0].startDate)) / (1000 * 60 * 60))} hours` 
-                        : 'N/A'}
+                        (trip.tripDates[0].durationDays > 0 ? `${trip.tripDates[0].durationDays} days` : `${trip.tripDates[0].durationHours} hours`)
+                        : 'Flexible'}
                     </p>
                   </div>
                 </div>
@@ -463,14 +449,13 @@ const TripDetailsPage = () => {
                   </div>
                   <div>
                     <p className="text-[#a3cbf2]/60 text-xs">Boat</p>
-                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boatName || 'N/A'}</p>
+                    <p className="text-[#cee5ff] font-semibold text-sm">{trip.boat?.name || trip.boatName || 'N/A'}</p>
                   </div>
                 </div>
               </div>
             </div>
             
             <div className="flex gap-3 relative">
-           
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -490,7 +475,6 @@ const TripDetailsPage = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* About This Trip */}
             <InfoCard title="About This Trip" icon={Info}>
               <p className="text-[#a3cbf2]/80 leading-relaxed whitespace-pre-line">
                 {trip.detailedDescription || trip.shortDescription || "No description available."}
@@ -514,7 +498,6 @@ const TripDetailsPage = () => {
               </div>
             </InfoCard>
             
-            {/* Boat Info */}
             {trip.boat && (
               <InfoCard title="About the Boat" icon={Anchor}>
                 <div className="flex items-start gap-4">
@@ -536,7 +519,6 @@ const TripDetailsPage = () => {
               </InfoCard>
             )}
             
-            {/* Trip Manager / Captain Info */}
             {trip.tripManagerName && (
               <InfoCard title="Trip Manager" icon={Navigation}>
                 <div className="flex items-center gap-4">
@@ -570,7 +552,6 @@ const TripDetailsPage = () => {
               </InfoCard>
             )}
             
-            {/* Reviews Section - Display ONLY, NO Add Review */}
             <InfoCard title={`Reviews (${reviews.length})`} icon={Star}>
               {reviewsLoading ? (
                 <div className="space-y-4">
@@ -626,12 +607,10 @@ const TripDetailsPage = () => {
 
                 <div className="flex justify-between items-center p-3 rounded-xl bg-[#001526] border border-white/5">
                   <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
-                    <ClockIcon size={16} className="text-sky-400" /> Duration
+                    <ClockIcon size={16} className="text-sky-400" /> Schedule Status
                   </span>
-                  <span className="text-sm text-[#cee5ff] font-medium">
-                    {trip.tripDates?.[0] ? 
-                      `${Math.ceil((new Date(trip.tripDates[0].endDate) - new Date(trip.tripDates[0].startDate)) / (1000 * 60 * 60))} hours` 
-                      : 'N/A'}
+                  <span className="text-xs text-[#cee5ff] font-medium text-right max-w-[140px] truncate">
+                    {trip.tripDates?.[0]?.remainingTimeText || "Flexible Dates"}
                   </span>
                 </div>
 
@@ -639,8 +618,8 @@ const TripDetailsPage = () => {
                   <span className="text-sm text-[#a3cbf2]/60 flex items-center gap-2">
                     <Ship size={16} className="text-sky-400" /> Boat
                   </span>
-                  <span className="text-sm text-[#cee5ff] font-medium truncate max-w-[140px]" title={trip.boatName || 'N/A'}>
-                    {trip.boatName || 'N/A'}
+                  <span className="text-sm text-[#cee5ff] font-medium truncate max-w-[140px]" title={trip.boat?.name || trip.boatName || 'N/A'}>
+                    {trip.boat?.name || trip.boatName || 'N/A'}
                   </span>
                 </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, ImagePlus, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";          
 
 const BoatWizard = ({ boat, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -51,7 +52,7 @@ const BoatWizard = ({ boat, onClose, onSave }) => {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size should be less than 5MB");
+      toast.error("Image size should be less than 5MB");
       return;
     }
     

@@ -262,7 +262,7 @@ const OrdersPage = () => {
     <div className="space-y-6 w-full pb-12 px-3 sm:px-0">
       {/* Animated Header */}
       <div className={`transform transition-all duration-700 ease-out ${animate ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}>
-        <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Orders</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#cee5ff]">Orders Management</h1>
         <p className="text-[#a3cbf2]/50 text-sm mt-1">Manage and track your customer orders</p>
       </div>
       

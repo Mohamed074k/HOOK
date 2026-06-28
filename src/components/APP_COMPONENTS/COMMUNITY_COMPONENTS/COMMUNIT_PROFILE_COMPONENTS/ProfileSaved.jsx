@@ -1,4 +1,3 @@
-// src/components/APP_COMPONENTS/COMMUNITY_COMPONENTS/ProfileSaved.jsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCard from "../PostCard";

@@ -1,6 +1,7 @@
+// src/pages/APP_CONTEXT/CommunityPage.jsx
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Flame, Users, Ship, ShieldCheck, Lock, ChevronDown, Check, Star, Loader2, Home, ChevronRight, Copy, MessageCircle, X } from "lucide-react";
+import { Flame, Users, Ship, ShieldCheck, ChevronDown, Check, Star, Loader2, Home, ChevronRight, Copy, MessageCircle, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCommunity } from "../../context/APP_CONTEXT/CommunityContext";
@@ -145,18 +146,20 @@ const CommunityPage = () => {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  // Strict route redirect authentication guard block
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("Please login to access the community feed", {
+        id: "community-auth-toast"
+      });
+      navigate("/login");
+    }
+  }, [user, authLoading, navigate]);
+
   if (authLoading) return <div className="min-h-screen bg-[#001526] flex items-center justify-center"><div className="w-12 h-12 border-4 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" /></div>;
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#001526] flex flex-col items-center justify-center text-center p-4">
-        <Lock size={64} className="text-sky-400/20 mb-6" />
-        <h2 className="text-3xl font-black text-[#cee5ff] mb-2">Join the Community</h2>
-        <p className="text-[#a3cbf2]/60 max-w-md mb-8">Login to view discussions, connect with anglers, and share your adventures.</p>
-        <Link to="/login" className="px-8 py-3 rounded-xl bg-sky-400 text-[#001526] font-bold hover:shadow-[0_0_20px_rgba(83,214,251,0.3)] transition-all">Login to Access</Link>
-      </div>
-    );
-  }
+  // Stop background layout frames from ticking while route changes direction
+  if (!user) return null;
 
   const activeCategoryLabel = categoryFilter ? POST_CATEGORIES[categoryFilter]?.label : "All Categories";
 
@@ -311,7 +314,7 @@ const CommunityPage = () => {
                         <UserAvatar url={seller.storeImageUrl} name={seller.sellerName} className="w-10 h-10 rounded-xl border border-white/10 group-hover:border-sky-400/50" />
                         <div>
                           <p className="text-sm font-bold text-[#cee5ff] group-hover:text-sky-400 line-clamp-1">{seller.sellerName}</p>
-                         </div>
+                        </div>
                       </div>
                     </div>
                   ))}

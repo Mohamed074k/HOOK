@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/components/OrdersTab.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Search, ShoppingBag, Package, X, Calendar, CreditCard, Eye, ChevronDown, MapPin, User, Phone, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -165,7 +164,7 @@ const OrderDetailsModal = ({ isOpen, order, onClose }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {/* Items List - Takes 3 columns */}
+                {/* Items List */}
                 <div className="md:col-span-3 space-y-4">
                   <h4 className="text-sm font-bold text-[#cee5ff] uppercase tracking-wider">Items ({order.items?.length || 0})</h4>
                   <div className="space-y-3">
@@ -192,7 +191,7 @@ const OrderDetailsModal = ({ isOpen, order, onClose }) => {
                   </div>
                 </div>
 
-                {/* Customer & Summary - Takes 2 columns */}
+                {/* Customer & Summary */}
                 <div className="md:col-span-2 space-y-6">
                   {/* Shipping Info */}
                   <div>
@@ -477,7 +476,7 @@ const OrdersTab = () => {
                                 <Eye size={16} />
                               </button>
                               
-                              {/* Cancel Button (Always rendered, visually disabled if not pending) */}
+                              {/* Cancel Button */}
                               <button 
                                 onClick={() => setCancelTarget(order.id)} 
                                 disabled={!isPending}

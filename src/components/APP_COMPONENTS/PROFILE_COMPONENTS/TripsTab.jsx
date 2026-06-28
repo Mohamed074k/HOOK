@@ -1,4 +1,3 @@
-// src/pages/USER_PAGES/components/TripsTab.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Ship, Calendar, Users, Star, Anchor, ArrowRight, X, Trash2, Pencil, Filter, Waves, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,15 +40,7 @@ const StatusPill = ({ status }) => {
   );
 };
 
- 
-  
- 
-  
- 
- 
- 
-
-// Custom Confirm Modal
+// Confirm Modal
 const ConfirmModal = ({ isOpen, title, text, onConfirm, onCancel, confirmText = "Confirm", isDanger = false }) => (
   <AnimatePresence>
     {isOpen && (
@@ -410,20 +401,16 @@ const TripsTab = () => {
     }
   };
 
-  // Determine if booking can be cancelled and what text to show
-  const getCancelInfo = (booking) => {
-    // Already cancelled (status 3) or cancellation requested (status 6) - hide cancel button
-    if (booking.status === 3 || booking.status === 6) {
+   const getCancelInfo = (booking) => {
+     if (booking.status === 3 || booking.status === 6) {
       return null;
     }
     
-    // Already rejected (status 4) or completed (status 5) - hide cancel button
-    if (booking.status === 4 || booking.status === 5) {
+     if (booking.status === 4 || booking.status === 5) {
       return null;
     }
     
-    // Cash on Arrival (method 1) - can cancel regardless of booking status or payment status
-    if (booking.payment?.method === 1) {
+     if (booking.payment?.method === 1) {
       return {
         text: "Cancel Trip",
         confirmTitle: "Cancel Trip",
@@ -432,8 +419,7 @@ const TripsTab = () => {
       };
     }
     
-    // InstaPay (method 2) - booking status 2 AND payment status 2
-    if (booking.payment?.method === 2 && booking.status === 2 && booking.payment?.status === 2) {
+     if (booking.payment?.method === 2 && booking.status === 2 && booking.payment?.status === 2) {
       return {
         text: "Request Cancellation",
         confirmTitle: "Request Cancellation",
@@ -442,8 +428,7 @@ const TripsTab = () => {
       };
     }
     
-    // InstaPay (method 2) - payment pending or booking not confirmed - cannot cancel
-    return null;
+     return null;
   };
 
   const filteredBookings = bookings.filter(b => {
@@ -591,7 +576,7 @@ const TripsTab = () => {
         {booking.numberOfParticipants} Guests
       </span>
       
-      {/* Price and Status Pill in same row */}
+      {/* Price and Status Pill */}
       <div className="flex items-center justify-between mt-1">
         <span className="flex items-center gap-2 font-semibold text-sky-400">
           <span className="bg-sky-400/10 px-2 py-0.5 rounded-md border border-sky-400/20">
@@ -617,15 +602,13 @@ const TripsTab = () => {
       </motion.button>
     )}
 
-    {/* Info: InstaPay payment pending - cannot cancel */}
-    {booking.payment?.method === 2 && booking.payment?.status === 1 && booking.status === 2 && (
+     {booking.payment?.method === 2 && booking.payment?.status === 1 && booking.status === 2 && (
       <p className="text-[10px] text-amber-400/60 text-center">
         Payment pending — cancellation available after approval
       </p>
     )}
 
-    {/* Info: Cancellation requested */}
-    {booking.status === 6 && (
+     {booking.status === 6 && (
       <p className="text-xs text-orange-400/60 text-center">
         Cancellation request pending owner approval
       </p>

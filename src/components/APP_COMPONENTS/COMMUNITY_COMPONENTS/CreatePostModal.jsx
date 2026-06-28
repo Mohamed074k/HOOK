@@ -140,14 +140,15 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-          <motion.div initial={{ y: 50, scale: 0.95 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.95 }} className="bg-[#002238] border border-white/10 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          
+          <motion.div initial={{ y: 50, scale: 0.95 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.95 }} className="bg-[#002238] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar relative">
             
-            <div className="p-5 border-b border-white/5 flex items-center justify-between shrink-0">
+            <div className="p-5 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#002238] z-30 rounded-t-3xl">
               <h3 className="text-lg font-bold text-[#cee5ff]">Create Post</h3>
               <button onClick={onClose} disabled={isSubmitting} className="p-2 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"><X size={20} className="text-[#a3cbf2]" /></button>
             </div>
             
-            <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
+            <div className="p-6 space-y-5 flex-1">
               <div className="flex gap-4">
                 <div onClick={handleAvatarClick} className="cursor-pointer hover:opacity-80 transition-opacity shrink-0">
                   <UserAvatar url={user?.profilePictureUrl} name={`${user?.firstName} ${user?.lastName}`} className="w-10 h-10 rounded-full border border-sky-400/30" />
@@ -167,7 +168,7 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/5 pt-5 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/5 pt-5 relative z-40">
                 <CustomAnimatedDropdown label="Category" icon={ImageIcon} options={categoryOptions} value={categoryOptions.find(o => o.value === formData.category)?.label} onChange={(val) => setFormData({...formData, category: val})} />
                 <CustomAnimatedDropdown label="Governorate" icon={MapPin} options={governorateOptions} value={formData.governorate} placeholder="Select Location" onChange={(val) => setFormData({...formData, governorate: val})} />
 
@@ -214,7 +215,7 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             </div>
             
-            <div className="p-3 border-t border-white/5 bg-transparent flex items-center justify-end shrink-0">
+            <div className="p-3 border-t border-white/5 bg-[#002238] flex items-center justify-end sticky bottom-0 z-20 rounded-b-3xl">
               <button 
                 onClick={handleSubmit} 
                 disabled={!formData.content.trim() || isSubmitting} 
@@ -224,6 +225,7 @@ const CreatePostModal = ({ isOpen, onClose, onSuccess }) => {
                 {isSubmitting ? "Posting..." : "Post"}
               </button>
             </div>
+
           </motion.div>
         </motion.div>
       )}

@@ -1,9 +1,7 @@
-// src/components/APP_COMPONENTS/HOME_COMPONENTS/FooterSection.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Heart } from "lucide-react";
-// استيراد أيقونات السوشيال ميديا من react-icons
-import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
+import { FaFacebookF, FaInstagram } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 // --- Animation Variants ---
@@ -28,6 +26,19 @@ const itemVariants = {
 };
 
 const FooterSection = () => {
+   const socialLinks = [
+    {
+      icon: FaFacebookF,
+      url: "https://www.facebook.com/share/1JQ6WFtPbL/?mibextid=LQQJ4d",
+      label: "Facebook Profile",
+    },
+    {
+      icon: FaInstagram,
+      url: "https://www.instagram.com/__ms074?igsh=MXQ1MjFpZnBxMmp3eg%3D%3D&utm_source=qr",
+      label: "Instagram Profile",
+    },
+  ];
+
   return (
     <footer className="bg-[#000F1F] border-t border-[#102a42] px-6 md:px-12 py-16 relative overflow-hidden">
       
@@ -60,17 +71,23 @@ const FooterSection = () => {
             
             {/* Social Media Icons */}
             <div className="flex items-center gap-3">
-              {[FaFacebookF, FaInstagram, FaTwitter, FaYoutube].map((Icon, idx) => (
-                <motion.a 
-                  key={idx}
-                  href="#"
-                  className="w-10 h-10 rounded-xl bg-[#001526] border border-[#102a42] flex items-center justify-center text-[#94A3B8] hover:text-[#53D6FB] hover:border-[#53D6FB]/50 hover:bg-[#53D6FB]/5 transition-all duration-300"
-                  whileHover={{ y: -3, scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Icon size={16} />
-                </motion.a>
-              ))}
+              {socialLinks.map((social, idx) => {
+                const Icon = social.icon;
+                return (
+                  <motion.a 
+                    key={idx}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className="w-10 h-10 rounded-xl bg-[#001526] border border-[#102a42] flex items-center justify-center text-[#94A3B8] hover:text-[#53D6FB] hover:border-[#53D6FB]/50 hover:bg-[#53D6FB]/5 transition-all duration-300"
+                    whileHover={{ y: -3, scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Icon size={16} />
+                  </motion.a>
+                );
+              })}
             </div>
           </motion.div>
 

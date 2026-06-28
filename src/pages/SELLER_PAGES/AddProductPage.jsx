@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { X, ImagePlus, Upload, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { useProducts } from "../../context/SELLER_CONTEXT/ProductContext";
+import toast from "react-hot-toast";
 
 const categories = [
   { id: 1, name: "Fishing Rods" },
@@ -42,6 +43,7 @@ const AddProductPage = () => {
   
   const [errors, setErrors] = useState({});
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [validationError, setValidationError] = useState(null); // New state for validation errors
   const galleryRef = useRef(null);
 
   useEffect(() => {
@@ -70,6 +72,9 @@ const AddProductPage = () => {
       reader.onload = (ev) => setImagePreviews(prev => [...prev, ev.target.result]);
       reader.readAsDataURL(file);
     });
+    
+    // Clear validation error when images are added
+    if (validationError) setValidationError(null);
   };
   
   const removeImage = (index, isExisting = false) => {
@@ -93,6 +98,7 @@ const AddProductPage = () => {
     if (formData.stockQuantity === "" || parseInt(formData.stockQuantity) < 0) newErrors.stockQuantity = "Stock must be 0 or greater";
     if (!formData.description.trim()) newErrors.description = "Description is required";
     setErrors(newErrors);
+    setValidationError(null); // Clear any previous validation error
     return Object.keys(newErrors).length === 0;
   };
   
@@ -100,6 +106,8 @@ const AddProductPage = () => {
     if (!validate()) return;
     
     setSaving(true);
+    setValidationError(null);
+    
     try {
       if (editingProduct) {
         await updateProduct({
@@ -126,6 +134,39 @@ const AddProductPage = () => {
       navigate("/seller/products");
     } catch (error) {
       console.error("Save error:", error);
+      
+      // Extract validation error message
+      let errorMessage = "Failed to save product";
+      
+      if (error.response?.data?.errors) {
+        // Handle validation errors from API
+        const errorData = error.response.data.errors;
+        
+        // Check if there's an Images validation error
+        if (errorData.Images) {
+          errorMessage = errorData.Images.join(", ");
+        } else if (errorData.Image) {
+          errorMessage = errorData.Image.join(", ");
+        } else {
+          // Format other validation errors
+          const errorMessages = Object.values(errorData).flat();
+          errorMessage = errorMessages.join(", ");
+        }
+        
+        // Set validation error to display in the UI
+        setValidationError(errorMessage);
+        toast.error(errorMessage);
+      } else if (error.response?.data?.title) {
+        errorMessage = error.response.data.title;
+        setValidationError(errorMessage);
+        toast.error(errorMessage);
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+        setValidationError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
@@ -150,6 +191,25 @@ const AddProductPage = () => {
           </p>
         </div>
       </div>
+      
+      {/* Validation Error Alert */}
+      {validationError && (
+        <div 
+          className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3 transform transition-all duration-300"
+          style={{ opacity: animate ? 1 : 0, transform: animate ? "translateY(0)" : "translateY(20px)" }}
+        >
+          <div className="flex-1">
+            <p className="text-red-400 text-sm font-medium">Validation Error</p>
+            <p className="text-red-300/80 text-sm mt-0.5">{validationError}</p>
+          </div>
+          <button 
+            onClick={() => setValidationError(null)}
+            className="text-red-400/50 hover:text-red-400 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
       
       {/* Form */}
       <div 
@@ -281,6 +341,9 @@ const AddProductPage = () => {
           </div>
           <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
           <p className="text-[#a3cbf2]/30 text-xs mt-2">Upload multiple product images</p>
+          {validationError && validationError.toLowerCase().includes("image") && (
+            <p className="text-red-400 text-xs mt-1">⚠️ {validationError}</p>
+          )}
         </div>
       </div>
       

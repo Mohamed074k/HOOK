@@ -240,6 +240,7 @@ export const ProductProvider = ({ children }) => {
     deleteProduct,
     getProductDetails,
     isSeller,
+    fetchProducts,
     // Helper functions
     getConditionText: productService.getConditionText,
     getConditionStyle: productService.getConditionStyle,
@@ -250,7 +251,7 @@ export const ProductProvider = ({ children }) => {
     filteredProducts, products, loading, authLoading,
     searchTerm, categoryFilter, statusFilter, priceRange,
     createProduct, updateProduct, deleteProduct, getProductDetails,
-    clearFilters, isSeller
+    clearFilters, isSeller, fetchProducts 
   ]);
 
   return (

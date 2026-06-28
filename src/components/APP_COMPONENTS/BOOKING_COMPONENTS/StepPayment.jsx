@@ -144,8 +144,7 @@ const StepPayment = ({ trip, quantity, selectedDateId, totalPrice, paymentMethod
               initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
               className="mt-4 overflow-hidden"
             >
-              {/* --- InstaPay Number Added Here --- */}
-              <p className="text-left text-sky-400 font-semibold mb-3">
+               <p className="text-left text-sky-400 font-semibold mb-3">
                 InstaPay Number: 01228563612
               </p>
               

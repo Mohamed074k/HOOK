@@ -1,5 +1,4 @@
-// src/components/APP_COMPONENTS/COMMUNITY_COMPONENTS/COMMUNIT_PROFILE_COMPONENTS/FollowModal.jsx
-import React, { useEffect } from "react";
+ import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
