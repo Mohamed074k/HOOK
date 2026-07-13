@@ -164,7 +164,7 @@ const TopProductsSection = () => {
                       <div className="flex flex-col">
                         <span className="text-[10px] text-[#a3cbf2]/50 uppercase tracking-wider mb-1">Current Price</span>
                         <span className="text-sky-400 font-black text-2xl tabular-nums tracking-tight">
-                          ${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}
+                          {typeof product.price === 'number' ? product.price.toFixed(2) : product.price} L.E
                         </span>
                       </div>
 

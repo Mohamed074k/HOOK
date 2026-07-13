@@ -309,7 +309,7 @@ const ProductDetailsPage = () => {
     {/* Price & Stock - Vertical layout */}
             <motion.div variants={fadeUp} className="flex flex-col items-start gap-4.5 mb-5">
               <span className="text-4xl font-black text-sky-400 tabular-nums tracking-tight leading-none">
-                ${product.price.toFixed(2)}
+                {product.price.toFixed(2)} L.E
               </span>
               
               <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 shadow-sm ${

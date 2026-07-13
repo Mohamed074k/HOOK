@@ -110,7 +110,7 @@ const ProductCard = ({ product, index, layout = "grid" }) => {
 
           <div className="mt-auto flex items-center justify-between">
             <span className="font-black text-lg text-sky-400">
-              ${product.price.toFixed(2)}
+              {product.price.toFixed(2)} L.E
             </span>
             <button
               onClick={handleAddToCart}
@@ -175,7 +175,7 @@ const ProductCard = ({ product, index, layout = "grid" }) => {
 
         <div className="flex justify-between items-center mt-4 mb-4">
           <span className="text-xl sm:text-2xl font-bold text-sky-400 tabular-nums">
-            ${product.price.toFixed(2)}
+            {product.price.toFixed(2)} L.E
           </span>
           <div className="flex items-center gap-1.5">
             <Star size={14} className="fill-amber-400 text-amber-400" />

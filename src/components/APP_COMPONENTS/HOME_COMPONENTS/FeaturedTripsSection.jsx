@@ -156,7 +156,7 @@ const FeaturedTripsSection = () => {
                     </div>
 
                      <div className="text-base md:text-lg font-black text-sky-400 tabular-nums">
-                     ${typeof trip.price === 'number' ? trip.price.toFixed(0) : trip.price}
+                     {typeof trip.price === 'number' ? trip.price.toFixed(0) : trip.price} L.E
                     </div>
                   </div>
                 </motion.div>
